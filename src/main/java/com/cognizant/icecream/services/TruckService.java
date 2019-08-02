@@ -25,7 +25,7 @@ public class TruckService {
         return truck;
     }
 
-    public Result removeTruck(Truck truck) {
+    public Result removeTruck(String vin) {
 
         return new Result();
     }

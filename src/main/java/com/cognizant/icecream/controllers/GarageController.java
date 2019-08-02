@@ -21,9 +21,9 @@ public class GarageController {
     private GarageService service;
 
     @GetMapping("{code}")
-    public ResponseEntity<Garage> getGarage(@PathVariable String garageCode) {
+    public ResponseEntity<Garage> getGarage(@PathVariable("code") String code) {
 
-        Garage garage = service.getGarage(garageCode);
+        Garage garage = service.getGarage(code);
         return new ResponseEntity<>(garage, HttpStatus.OK);
     }
 
@@ -35,7 +35,7 @@ public class GarageController {
     }
 
     @PutMapping("{code}")
-    public ResponseEntity<?> updateGarage(@PathVariable String code, @RequestBody Garage garage) {
+    public ResponseEntity<?> updateGarage(@PathVariable("code") String code, @RequestBody Garage garage) {
 
         Optional<ResponseEntity<String>> errResponse = checkPathVariableMatch(code, garage::getCode, garage::setCode);
 
@@ -48,15 +48,9 @@ public class GarageController {
     }
 
     @DeleteMapping("{code}")
-    public ResponseEntity<?> removeGarage(@PathVariable("code") String code, @RequestBody Garage garage) {
+    public ResponseEntity<?> removeGarage(@PathVariable("code") String code) {
 
-        Optional<ResponseEntity<String>> errResponse = checkPathVariableMatch(code, garage::getCode, garage::setCode);
-
-        if(errResponse.isPresent()) {
-            return errResponse.get();
-        }
-
-        Result result = service.removeGarage(garage);
+        Result result = service.removeGarage(code);
 
         if(result.isSuccess()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -67,9 +61,9 @@ public class GarageController {
     }
 
     @PostMapping("{code}/resupply")
-    public ResponseEntity<Result> scheduleResupply(@PathVariable String garageCode, @RequestBody TimeSlot timeSlot) {
+    public ResponseEntity<Result> scheduleResupply(@PathVariable("code") String code, @RequestBody TimeSlot timeSlot) {
 
-        Result result = service.resupply(garageCode, timeSlot);
+        Result result = service.resupply(code, timeSlot);
         return ControllerUtil.resultToResponseDefault(result);
     }
 }

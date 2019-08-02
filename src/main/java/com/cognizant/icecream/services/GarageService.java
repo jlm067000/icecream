@@ -27,7 +27,7 @@ public class GarageService {
         return garage;
     }
 
-    public Result removeGarage(Garage garage) {
+    public Result removeGarage(String garageCode) {
         return new Result();
     }
 

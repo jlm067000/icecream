@@ -22,7 +22,7 @@ public class TruckController {
     private TruckService service;
 
     @GetMapping("{vin}")
-    public ResponseEntity<Truck> getTruck(@PathVariable String vin) {
+    public ResponseEntity<Truck> getTruck(@PathVariable("vin") String vin) {
 
         Truck truck = service.getTruck(vin);
         return new ResponseEntity<>(truck, HttpStatus.OK);
@@ -36,7 +36,7 @@ public class TruckController {
     }
 
     @PutMapping("{vin}")
-    public ResponseEntity<?> updateTruck(@PathVariable String vin, @RequestBody Truck truck) {
+    public ResponseEntity<?> updateTruck(@PathVariable("vin") String vin, @RequestBody Truck truck) {
 
         Optional<ResponseEntity<String>> errResponse = checkPathVariableMatch(vin, truck::getVin, truck::setVin);
 
@@ -49,15 +49,9 @@ public class TruckController {
     }
 
     @DeleteMapping("{vin}")
-    public ResponseEntity<?> removeTruck(@PathVariable String vin, @RequestBody Truck truck) {
+    public ResponseEntity<?> removeTruck(@PathVariable("vin") String vin) {
 
-        Optional<ResponseEntity<String>> errResponse = checkPathVariableMatch(vin, truck::getVin, truck::setVin);
-
-        if(errResponse.isPresent()) {
-            return errResponse.get();
-        }
-
-        Result result = service.removeTruck(truck);
+        Result result = service.removeTruck(vin);
 
         if(result.isSuccess()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -110,7 +104,7 @@ public class TruckController {
     }
 
     @PostMapping("purchase")
-    public ResponseEntity<Invoice> purchaseTrucks(@RequestParam("authorization") String auth, @RequestBody TruckPurchaseOrder order) {
+    public ResponseEntity<Invoice> purchaseTrucks(@RequestHeader("Authorization") String auth, @RequestBody TruckPurchaseOrder order) {
 
         Invoice invoice = service.purchaseTrucks(auth, order);
         return new ResponseEntity<>(invoice, HttpStatus.OK);
