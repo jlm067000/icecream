@@ -1,9 +1,6 @@
 package com.cognizant.icecream.services.truck;
 
-import com.cognizant.icecream.models.Invoice;
-import com.cognizant.icecream.models.Garage;
-import com.cognizant.icecream.models.TruckGarage;
-import com.cognizant.icecream.models.TruckPurchaseOrder;
+import com.cognizant.icecream.models.*;
 import com.cognizant.icecream.services.truck.contract.Result;
 import org.springframework.stereotype.Service;
 
@@ -19,11 +16,37 @@ public class IcecreamTruckService {
         return new Invoice();
     }
 
-    public Set<Garage> getLocations() {
+    public Result deploy(TruckGarage truckGarage) {
+
+        return new Result();
+    }
+
+    public Result patrol(boolean alcoholic, Neighborhood neighborhood) {
+
+        return new Result();
+    }
+
+    public Set<Truck> getTrucks() {
+
         return new HashSet<>();
     }
 
-    public Result deploy(TruckGarage truckLocation) {
+    public Set<Truck> getTrucks(String garageCode) {
+
+        return new HashSet<>();
+    }
+
+    public Set<Truck> getTrucks(boolean alcholic) {
+
+        return new HashSet<>();
+    }
+
+    public Set<Truck> getTrucks(String garageCode, boolean alcoholic) {
+
+        return new HashSet<>();
+    }
+
+    public Result resupply(String garageCode, TimeSlot timeSlot) {
 
         return new Result();
     }
