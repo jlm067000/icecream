@@ -1,4 +1,4 @@
-package com.cognizant.icecream.services.truck.contract;
+package com.cognizant.icecream.services.api;
 
 import java.util.Objects;
 

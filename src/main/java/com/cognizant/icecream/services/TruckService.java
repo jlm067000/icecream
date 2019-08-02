@@ -1,15 +1,34 @@
-package com.cognizant.icecream.services.truck;
+package com.cognizant.icecream.services;
 
 import com.cognizant.icecream.models.*;
-import com.cognizant.icecream.services.truck.contract.Result;
+import com.cognizant.icecream.services.api.Result;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.Set;
 
 @Service
-public class IcecreamTruckService {
+public class TruckService {
 
+    public Truck getTruck(String vin) {
+
+        return new Truck();
+    }
+
+    public Truck addTruck(Truck truck) {
+
+        return truck;
+    }
+
+    public Truck updateTruck(Truck truck) {
+
+        return truck;
+    }
+
+    public Result removeTruck(Truck truck) {
+
+        return new Result();
+    }
 
     public Invoice purchaseTrucks(String authorization, TruckPurchaseOrder order) {
 
@@ -17,6 +36,11 @@ public class IcecreamTruckService {
     }
 
     public Result deploy(TruckGarage truckGarage) {
+
+        return new Result();
+    }
+
+    public Result undeploy(TruckGarage truckGarage) {
 
         return new Result();
     }
@@ -44,11 +68,6 @@ public class IcecreamTruckService {
     public Set<Truck> getTrucks(String garageCode, boolean alcoholic) {
 
         return new HashSet<>();
-    }
-
-    public Result resupply(String garageCode, TimeSlot timeSlot) {
-
-        return new Result();
     }
 
 }
