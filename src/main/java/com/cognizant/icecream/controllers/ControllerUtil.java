@@ -1,7 +1,6 @@
 package com.cognizant.icecream.controllers;
 
-import com.cognizant.icecream.models.Truck;
-import com.cognizant.icecream.services.api.Result;
+import com.cognizant.icecream.clients.ResultObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -33,7 +32,7 @@ class ControllerUtil {
         return Optional.of(response);
     }
 
-    static ResponseEntity<Result> resultToResponseDefault(Result result) {
+    static ResponseEntity<ResultObject> resultToResponseDefault(ResultObject result) {
 
         if(result.isSuccess()) {
             return new ResponseEntity<>(HttpStatus.OK);

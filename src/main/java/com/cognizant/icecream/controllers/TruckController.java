@@ -2,12 +2,13 @@ package com.cognizant.icecream.controllers;
 
 import com.cognizant.icecream.models.*;
 import com.cognizant.icecream.services.TruckService;
-import com.cognizant.icecream.services.api.Result;
+import com.cognizant.icecream.clients.ResultObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.Optional;
 import java.util.Set;
 
@@ -29,14 +30,14 @@ public class TruckController {
     }
 
     @PostMapping
-    public ResponseEntity<Truck> addTruck(@RequestBody Truck truck) {
+    public ResponseEntity<Truck> addTruck(@Valid @RequestBody Truck truck) {
 
         truck = service.addTruck(truck);
         return new ResponseEntity<>(truck, HttpStatus.CREATED);
     }
 
     @PutMapping("{vin}")
-    public ResponseEntity<?> updateTruck(@PathVariable("vin") String vin, @RequestBody Truck truck) {
+    public ResponseEntity<?> updateTruck(@PathVariable("vin") String vin, @Valid @RequestBody Truck truck) {
 
         Optional<ResponseEntity<String>> errResponse = checkPathVariableMatch(vin, truck::getVin, truck::setVin);
 
@@ -51,7 +52,7 @@ public class TruckController {
     @DeleteMapping("{vin}")
     public ResponseEntity<?> removeTruck(@PathVariable("vin") String vin) {
 
-        Result result = service.removeTruck(vin);
+        ResultObject result = service.removeTruck(vin);
 
         if(result.isSuccess()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -104,30 +105,30 @@ public class TruckController {
     }
 
     @PostMapping("purchase")
-    public ResponseEntity<Invoice> purchaseTrucks(@RequestHeader("Authorization") String auth, @RequestBody TruckPurchaseOrder order) {
+    public ResponseEntity<Invoice> purchaseTrucks(@RequestHeader("Authorization") String auth, @Valid @RequestBody TruckPurchaseOrder order) {
 
         Invoice invoice = service.purchaseTrucks(auth, order);
         return new ResponseEntity<>(invoice, HttpStatus.OK);
     }
 
     @PostMapping("deploy")
-    public ResponseEntity<Result> deploy(@RequestBody TruckGarage truckGarage) {
+    public ResponseEntity<ResultObject> deploy(@Valid @RequestBody TruckGarage truckGarage) {
 
-        Result result = service.deploy(truckGarage);
+        ResultObject result = service.deploy(truckGarage);
         return resultToResponseDefault(result);
     }
 
     @PostMapping("undeploy")
-    public ResponseEntity<Result> undeploy(@RequestBody TruckGarage truckGarage) {
+    public ResponseEntity<ResultObject> undeploy(@Valid @RequestBody TruckGarage truckGarage) {
 
-        Result result = service.undeploy(truckGarage);
+        ResultObject result = service.undeploy(truckGarage);
         return resultToResponseDefault(result);
     }
 
     @PostMapping("patrol")
-    public ResponseEntity<Result> patrolAlcoholic(@RequestParam boolean alcoholic, @RequestBody Neighborhood neighborhood) {
+    public ResponseEntity<ResultObject> patrolAlcoholic(@RequestParam boolean alcoholic, @RequestBody Neighborhood neighborhood) {
 
-        Result result = service.patrol(alcoholic, neighborhood);
+        ResultObject result = service.patrol(alcoholic, neighborhood);
         return resultToResponseDefault(result);
     }
 

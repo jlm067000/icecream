@@ -1,12 +1,19 @@
 package com.cognizant.icecream.models;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.Objects;
 import java.util.Set;
 
 public class TruckPurchaseOrder {
 
-    private Set<Truck> trucks;
-    private Garage location;
+    @NotNull
+    private Set<@Valid Truck> trucks;
+
+    @Valid
+    @NotNull
+    private Garage garage;
+
     private PaymentDetails paymentDetails;
 
 
@@ -18,12 +25,12 @@ public class TruckPurchaseOrder {
         this.trucks = trucks;
     }
 
-    public Garage getLocation() {
-        return location;
+    public Garage getGarage() {
+        return garage;
     }
 
-    public void setLocation(Garage location) {
-        this.location = location;
+    public void setGarage(Garage garage) {
+        this.garage = garage;
     }
 
     public PaymentDetails getPaymentDetails() {
@@ -40,12 +47,12 @@ public class TruckPurchaseOrder {
         if (o == null || getClass() != o.getClass()) return false;
         TruckPurchaseOrder that = (TruckPurchaseOrder) o;
         return Objects.equals(trucks, that.trucks) &&
-                Objects.equals(location, that.location) &&
+                Objects.equals(garage, that.garage) &&
                 Objects.equals(paymentDetails, that.paymentDetails);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(trucks, location, paymentDetails);
+        return Objects.hash(trucks, garage, paymentDetails);
     }
 }

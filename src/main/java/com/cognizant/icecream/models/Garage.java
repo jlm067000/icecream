@@ -1,9 +1,11 @@
 package com.cognizant.icecream.models;
 
+import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 public class Garage {
 
+    @NotNull
     private String code;
 
     public String getCode() {

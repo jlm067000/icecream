@@ -1,7 +1,7 @@
 package com.cognizant.icecream.services;
 
 import com.cognizant.icecream.models.*;
-import com.cognizant.icecream.services.api.Result;
+import com.cognizant.icecream.clients.ResultObject;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -25,9 +25,9 @@ public class TruckService {
         return truck;
     }
 
-    public Result removeTruck(String vin) {
+    public ResultObject removeTruck(String vin) {
 
-        return new Result();
+        return new ResultObject();
     }
 
     public Invoice purchaseTrucks(String authorization, TruckPurchaseOrder order) {
@@ -35,19 +35,19 @@ public class TruckService {
         return new Invoice();
     }
 
-    public Result deploy(TruckGarage truckGarage) {
+    public ResultObject deploy(TruckGarage truckGarage) {
 
-        return new Result();
+        return new ResultObject();
     }
 
-    public Result undeploy(TruckGarage truckGarage) {
+    public ResultObject undeploy(TruckGarage truckGarage) {
 
-        return new Result();
+        return new ResultObject();
     }
 
-    public Result patrol(boolean alcoholic, Neighborhood neighborhood) {
+    public ResultObject patrol(boolean alcoholic, Neighborhood neighborhood) {
 
-        return new Result();
+        return new ResultObject();
     }
 
     public Set<Truck> getTrucks() {
@@ -60,7 +60,7 @@ public class TruckService {
         return new HashSet<>();
     }
 
-    public Set<Truck> getTrucks(boolean alcholic) {
+    public Set<Truck> getTrucks(boolean alcoholic) {
 
         return new HashSet<>();
     }
@@ -69,5 +69,4 @@ public class TruckService {
 
         return new HashSet<>();
     }
-
 }

@@ -2,16 +2,16 @@ package com.cognizant.icecream.services;
 
 import com.cognizant.icecream.models.Garage;
 import com.cognizant.icecream.models.TimeSlot;
-import com.cognizant.icecream.services.api.Result;
+import com.cognizant.icecream.clients.ResultObject;
 import org.springframework.stereotype.Service;
 
 @Service
 public class GarageService {
 
 
-    public Result resupply(String garageCode, TimeSlot timeSlot) {
+    public ResultObject resupply(String garageCode, TimeSlot timeSlot) {
 
-        return new Result();
+        return new ResultObject();
     }
 
     public Garage getGarage(String garageCode) {
@@ -27,8 +27,8 @@ public class GarageService {
         return garage;
     }
 
-    public Result removeGarage(String garageCode) {
-        return new Result();
+    public ResultObject removeGarage(String garageCode) {
+        return new ResultObject();
     }
 
 }

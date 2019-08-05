@@ -1,10 +1,14 @@
 package com.cognizant.icecream.models;
 
+import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 public class Truck {
 
+    @NotNull
     private String vin;
+
+    @NotNull
     private boolean alcoholic;
 
     public String getVin() {

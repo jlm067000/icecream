@@ -3,12 +3,13 @@ package com.cognizant.icecream.controllers;
 import com.cognizant.icecream.models.Garage;
 import com.cognizant.icecream.models.TimeSlot;
 import com.cognizant.icecream.services.GarageService;
-import com.cognizant.icecream.services.api.Result;
+import com.cognizant.icecream.clients.ResultObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.Optional;
 
 import static com.cognizant.icecream.controllers.ControllerUtil.checkPathVariableMatch;
@@ -28,14 +29,14 @@ public class GarageController {
     }
 
     @PostMapping
-    public ResponseEntity<Garage> addGarage(@RequestBody Garage garage) {
+    public ResponseEntity<Garage> addGarage(@Valid @RequestBody Garage garage) {
 
         garage = service.addGarage(garage);
         return new ResponseEntity<>(garage, HttpStatus.CREATED);
     }
 
     @PutMapping("{code}")
-    public ResponseEntity<?> updateGarage(@PathVariable("code") String code, @RequestBody Garage garage) {
+    public ResponseEntity<?> updateGarage(@PathVariable("code") String code, @Valid @RequestBody Garage garage) {
 
         Optional<ResponseEntity<String>> errResponse = checkPathVariableMatch(code, garage::getCode, garage::setCode);
 
@@ -50,7 +51,7 @@ public class GarageController {
     @DeleteMapping("{code}")
     public ResponseEntity<?> removeGarage(@PathVariable("code") String code) {
 
-        Result result = service.removeGarage(code);
+        ResultObject result = service.removeGarage(code);
 
         if(result.isSuccess()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -61,9 +62,9 @@ public class GarageController {
     }
 
     @PostMapping("{code}/resupply")
-    public ResponseEntity<Result> scheduleResupply(@PathVariable("code") String code, @RequestBody TimeSlot timeSlot) {
+    public ResponseEntity<ResultObject> scheduleResupply(@PathVariable("code") String code, @Valid @RequestBody TimeSlot timeSlot) {
 
-        Result result = service.resupply(code, timeSlot);
+        ResultObject result = service.resupply(code, timeSlot);
         return ControllerUtil.resultToResponseDefault(result);
     }
 }
