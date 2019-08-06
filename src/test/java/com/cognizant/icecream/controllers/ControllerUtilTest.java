@@ -1,6 +1,7 @@
 package com.cognizant.icecream.controllers;
 
-import com.cognizant.icecream.clients.ResultObject;
+import com.cognizant.icecream.clients.Result;
+import com.cognizant.icecream.clients.ResultFactory;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,7 +10,8 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import static com.cognizant.icecream.controllers.ControllerUtil.*;
+import static com.cognizant.icecream.controllers.ControllerUtil.checkPathVariableMatch;
+import static com.cognizant.icecream.controllers.ControllerUtil.resultToResponseDefault;
 import static org.junit.Assert.*;
 
 public class ControllerUtilTest {
@@ -59,15 +61,14 @@ public class ControllerUtilTest {
     @Test
     public void testResultToResponse() {
 
-        ResultObject result = new ResultObject();
+        Result result = ResultFactory.createResult(true, "");
 
-        result.setSuccess(true);
-        ResponseEntity<ResultObject> response = resultToResponseDefault(result);
+        ResponseEntity<Result> response = resultToResponseDefault(result);
 
         assertNull(response.getBody());
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        result.setSuccess(false);
+        result = ResultFactory.createResult(false, "");
         response = resultToResponseDefault(result);
 
         assertEquals(result, response.getBody());

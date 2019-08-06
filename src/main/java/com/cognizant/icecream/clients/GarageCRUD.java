@@ -1,6 +1,8 @@
 package com.cognizant.icecream.clients;
 
 import com.cognizant.icecream.models.Garage;
+import com.cognizant.icecream.models.Truck;
+import com.cognizant.icecream.models.TruckGarage;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
@@ -8,11 +10,13 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @Component
 public class GarageCRUD {
 
     private Set<Garage> garages;
+    private Set<TruckGarage> truckGarages;
 
     public GarageCRUD() {
 
@@ -22,6 +26,16 @@ public class GarageCRUD {
         garage.setCode("12");
 
         garages.add(garage);
+
+        truckGarages = new HashSet<>();
+
+        Truck truck = new Truck();
+        truck.setVin("1");
+        TruckGarage truckGarage = new TruckGarage();
+        truckGarage.setTruck(truck);
+        truckGarage.setGarage(garage);
+
+        truckGarages.add(truckGarage);
     }
 
     public Optional<Garage> findByCode(String code) {
@@ -70,6 +84,14 @@ public class GarageCRUD {
         return garages.removeIf(condition);
     }
 
+    public Set<TruckGarage> findAllByGarage(Garage garage) {
+
+        return truckGarages.stream()
+                           .filter(tg -> Objects.equals(tg.getGarage(), garage))
+                           .map(GarageCRUD::clone)
+                           .collect(Collectors.toSet());
+    }
+
     private static Garage clone(Garage garage) {
 
         Garage clone = new Garage();
@@ -78,4 +100,21 @@ public class GarageCRUD {
         return clone;
     }
 
+    private static Truck clone(Truck truck) {
+
+        Truck clone = new Truck();
+        clone.setAlcoholic(truck.isAlcoholic());
+        clone.setVin(truck.getVin());
+
+        return clone;
+    }
+
+    private static TruckGarage clone(TruckGarage truckGarage) {
+
+        TruckGarage clone = new TruckGarage();
+        clone.setGarage(clone(truckGarage.getGarage()));
+        clone.setTruck(clone(truckGarage.getTruck()));
+
+        return clone;
+    }
 }

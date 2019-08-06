@@ -2,7 +2,7 @@ package com.cognizant.icecream.clients;
 
 import java.util.Objects;
 
-public class ResultObject implements Result {
+class ResultObject implements Result {
 
     private boolean success;
     private String message;

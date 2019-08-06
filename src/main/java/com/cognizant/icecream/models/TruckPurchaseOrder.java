@@ -16,7 +16,6 @@ public class TruckPurchaseOrder {
 
     private PaymentDetails paymentDetails;
 
-
     public Set<Truck> getTrucks() {
         return trucks;
     }

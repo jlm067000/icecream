@@ -1,9 +1,9 @@
 package com.cognizant.icecream.controllers;
 
+import com.cognizant.icecream.clients.Result;
 import com.cognizant.icecream.models.Garage;
 import com.cognizant.icecream.models.TimeSlot;
 import com.cognizant.icecream.services.GarageService;
-import com.cognizant.icecream.clients.ResultObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +18,12 @@ import static com.cognizant.icecream.controllers.ControllerUtil.checkPathVariabl
 @RequestMapping("icecream/garage")
 public class GarageController {
 
-    @Autowired
     private GarageService service;
+
+    @Autowired
+    public GarageController(GarageService service) {
+        this.service = service;
+    }
 
     @GetMapping("{code}")
     public ResponseEntity<Garage> getGarage(@PathVariable("code") String code) {
@@ -51,7 +55,7 @@ public class GarageController {
     @DeleteMapping("{code}")
     public ResponseEntity<?> removeGarage(@PathVariable("code") String code) {
 
-        ResultObject result = service.removeGarage(code);
+        Result result = service.removeGarage(code);
 
         if(result.isSuccess()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -62,9 +66,9 @@ public class GarageController {
     }
 
     @PostMapping("{code}/resupply")
-    public ResponseEntity<ResultObject> scheduleResupply(@PathVariable("code") String code, @Valid @RequestBody TimeSlot timeSlot) {
+    public ResponseEntity<Result> scheduleResupply(@PathVariable("code") String code, @Valid @RequestBody TimeSlot timeSlot) {
 
-        ResultObject result = service.resupply(code, timeSlot);
+        Result result = service.resupply(code, timeSlot);
         return ControllerUtil.resultToResponseDefault(result);
     }
 }

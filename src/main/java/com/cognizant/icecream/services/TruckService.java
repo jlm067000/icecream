@@ -1,7 +1,8 @@
 package com.cognizant.icecream.services;
 
+import com.cognizant.icecream.clients.Result;
+import com.cognizant.icecream.clients.ResultFactory;
 import com.cognizant.icecream.models.*;
-import com.cognizant.icecream.clients.ResultObject;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -25,9 +26,9 @@ public class TruckService {
         return truck;
     }
 
-    public ResultObject removeTruck(String vin) {
+    public Result removeTruck(String vin) {
 
-        return new ResultObject();
+        return ResultFactory.createResult(true, "removed");
     }
 
     public Invoice purchaseTrucks(String authorization, TruckPurchaseOrder order) {
@@ -35,19 +36,19 @@ public class TruckService {
         return new Invoice();
     }
 
-    public ResultObject deploy(TruckGarage truckGarage) {
+    public Result deploy(TruckGarage truckGarage) {
 
-        return new ResultObject();
+        return ResultFactory.createResult(true, "deployed");
     }
 
-    public ResultObject undeploy(TruckGarage truckGarage) {
+    public Result undeploy(TruckGarage truckGarage) {
 
-        return new ResultObject();
+        return ResultFactory.createResult(true, "undeploy");
     }
 
-    public ResultObject patrol(boolean alcoholic, Neighborhood neighborhood) {
+    public Result patrol(boolean alcoholic, Neighborhood neighborhood) {
 
-        return new ResultObject();
+        return ResultFactory.createResult(true, "patrol");
     }
 
     public Set<Truck> getTrucks() {

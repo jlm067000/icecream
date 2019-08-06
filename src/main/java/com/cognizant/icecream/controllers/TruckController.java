@@ -1,8 +1,8 @@
 package com.cognizant.icecream.controllers;
 
+import com.cognizant.icecream.clients.Result;
 import com.cognizant.icecream.models.*;
 import com.cognizant.icecream.services.TruckService;
-import com.cognizant.icecream.clients.ResultObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,8 +19,12 @@ import static com.cognizant.icecream.controllers.ControllerUtil.resultToResponse
 @RequestMapping("icecream/truck")
 public class TruckController {
 
-    @Autowired
     private TruckService service;
+
+    @Autowired
+    public TruckController(TruckService service) {
+        this.service = service;
+    }
 
     @GetMapping("{vin}")
     public ResponseEntity<Truck> getTruck(@PathVariable("vin") String vin) {
@@ -52,7 +56,7 @@ public class TruckController {
     @DeleteMapping("{vin}")
     public ResponseEntity<?> removeTruck(@PathVariable("vin") String vin) {
 
-        ResultObject result = service.removeTruck(vin);
+        Result result = service.removeTruck(vin);
 
         if(result.isSuccess()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -112,23 +116,23 @@ public class TruckController {
     }
 
     @PostMapping("deploy")
-    public ResponseEntity<ResultObject> deploy(@Valid @RequestBody TruckGarage truckGarage) {
+    public ResponseEntity<Result> deploy(@Valid @RequestBody TruckGarage truckGarage) {
 
-        ResultObject result = service.deploy(truckGarage);
+        Result result = service.deploy(truckGarage);
         return resultToResponseDefault(result);
     }
 
     @PostMapping("undeploy")
-    public ResponseEntity<ResultObject> undeploy(@Valid @RequestBody TruckGarage truckGarage) {
+    public ResponseEntity<Result> undeploy(@Valid @RequestBody TruckGarage truckGarage) {
 
-        ResultObject result = service.undeploy(truckGarage);
+        Result result = service.undeploy(truckGarage);
         return resultToResponseDefault(result);
     }
 
     @PostMapping("patrol")
-    public ResponseEntity<ResultObject> patrolAlcoholic(@RequestParam boolean alcoholic, @RequestBody Neighborhood neighborhood) {
+    public ResponseEntity<Result> patrolAlcoholic(@RequestParam boolean alcoholic, @RequestBody Neighborhood neighborhood) {
 
-        ResultObject result = service.patrol(alcoholic, neighborhood);
+        Result result = service.patrol(alcoholic, neighborhood);
         return resultToResponseDefault(result);
     }
 

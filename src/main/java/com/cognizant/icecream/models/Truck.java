@@ -32,12 +32,11 @@ public class Truck {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Truck truck = (Truck) o;
-        return alcoholic == truck.alcoholic &&
-                Objects.equals(vin, truck.vin);
+        return Objects.equals(vin, truck.vin);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(vin, alcoholic);
+        return Objects.hash(vin);
     }
 }
