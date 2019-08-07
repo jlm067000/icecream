@@ -1,14 +1,22 @@
 package com.cognizant.icecream.services;
 
+import com.cognizant.icecream.clients.GarageCRUD;
 import com.cognizant.icecream.clients.Result;
 import com.cognizant.icecream.clients.ResultFactory;
 import com.cognizant.icecream.models.Garage;
 import com.cognizant.icecream.models.TimeSlot;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class GarageService {
 
+    private GarageCRUD garageCRUD;
+
+    @Autowired
+    public GarageService(GarageCRUD garageCRUD) {
+        this.garageCRUD = garageCRUD;
+    }
 
     public Result resupply(String garageCode, TimeSlot timeSlot) {
 
@@ -31,5 +39,4 @@ public class GarageService {
     public Result removeGarage(String garageCode) {
         return ResultFactory.createResult(true, "removed");
     }
-
 }

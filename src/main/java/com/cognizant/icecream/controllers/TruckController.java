@@ -122,13 +122,6 @@ public class TruckController {
         return resultToResponseDefault(result);
     }
 
-    @PostMapping("undeploy")
-    public ResponseEntity<Result> undeploy(@Valid @RequestBody TruckGarage truckGarage) {
-
-        Result result = service.undeploy(truckGarage);
-        return resultToResponseDefault(result);
-    }
-
     @PostMapping("patrol")
     public ResponseEntity<Result> patrolAlcoholic(@RequestParam boolean alcoholic, @RequestBody Neighborhood neighborhood) {
 
