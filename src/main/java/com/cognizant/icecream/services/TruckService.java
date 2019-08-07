@@ -41,11 +41,6 @@ public class TruckService {
         return ResultFactory.createResult(true, "deployed");
     }
 
-    public Result undeploy(TruckGarage truckGarage) {
-
-        return ResultFactory.createResult(true, "undeploy");
-    }
-
     public Result patrol(boolean alcoholic, Neighborhood neighborhood) {
 
         return ResultFactory.createResult(true, "patrol");

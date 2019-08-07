@@ -19,6 +19,13 @@ public class TruckPurchasingClient {
     @Autowired
     private TruckCRUD truckCRUD;
 
+    @Autowired
+    public TruckPurchasingClient(GarageCRUD garageCRUD, TruckCRUD truckCRUD) {
+
+        this.garageCRUD = garageCRUD;
+        this.truckCRUD = truckCRUD;
+    }
+
     public Result purchaseTrucks(TruckPurchaseOrder tpo) {
 
         Garage garage = tpo.getGarage();
