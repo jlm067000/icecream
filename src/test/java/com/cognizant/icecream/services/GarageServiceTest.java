@@ -2,16 +2,13 @@ package com.cognizant.icecream.services;
 
 import com.cognizant.icecream.clients.GarageCRUD;
 import com.cognizant.icecream.clients.Result;
+import com.cognizant.icecream.clients.SupplyClient;
 import com.cognizant.icecream.models.Garage;
 import com.cognizant.icecream.models.TimeSlot;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,6 +16,7 @@ import java.util.Optional;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 
 public class GarageServiceTest {
 
@@ -29,6 +27,7 @@ public class GarageServiceTest {
 
     private GarageService garageService;
     private GarageCRUD garageCRUD;
+    private SupplyClient supplyClient;
 
     @BeforeClass
     public static void init() {
@@ -47,7 +46,10 @@ public class GarageServiceTest {
         garageCRUD = Mockito.mock(GarageCRUD.class);
         Mockito.when(garageCRUD.findByCode("12")).thenReturn(Optional.of(garage));
 
-        garageService = new GarageService(garageCRUD);
+        supplyClient = Mockito.mock(SupplyClient.class);
+        Mockito.when(supplyClient.scheduleResupply(any(), any())).thenReturn(true);
+
+        garageService = new GarageService(garageCRUD, supplyClient);
     }
 
     @Test
@@ -55,18 +57,23 @@ public class GarageServiceTest {
 
         Result result = garageService.resupply("12", futureTime);
         assertTrue(result.isSuccess());
+        Mockito.verify(supplyClient).scheduleResupply("12", futureTime);
 
         result = garageService.resupply("11", futureTime);
         assertFalse(result.isSuccess());
+        Mockito.verify(supplyClient).scheduleResupply("11", futureTime);
 
         result = garageService.resupply("12", pastTime);
         assertFalse(result.isSuccess());
+        Mockito.verify(supplyClient).scheduleResupply("12", pastTime);
 
         result = garageService.resupply("12", nullDate);
         assertFalse(result.isSuccess());
+        Mockito.verify(supplyClient).scheduleResupply("12", nullDate);
 
         result = garageService.resupply("12", invalidHour);
         assertFalse(result.isSuccess());
+        Mockito.verify(supplyClient).scheduleResupply("12", invalidHour);
     }
 
     private static TimeSlot getTimeSlot(int dayOffset) {
