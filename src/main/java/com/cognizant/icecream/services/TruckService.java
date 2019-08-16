@@ -11,9 +11,15 @@ import java.util.Set;
 @Service
 public class TruckService {
 
+    private static final Result removed;
+
     private GarageCRUD garageCRUD;
     private TruckCRUD truckCRUD;
     private TruckPurchasingClient purchasingClient;
+
+    static {
+        removed = ResultFactory.createResult(true, "removed");
+    }
 
     @Autowired
     public TruckService(GarageCRUD garageCRUD, TruckCRUD truckCRUD, TruckPurchasingClient purchasingClient) {
@@ -23,7 +29,6 @@ public class TruckService {
         this.purchasingClient = purchasingClient;
     }
 
-
     public Truck getTruck(String vin) {
 
         return ServicesUtil.extractOptionally(vin, truckCRUD::findByVIN);
@@ -31,17 +36,24 @@ public class TruckService {
 
     public Truck addTruck(Truck truck) {
 
-        return truck;
+        return ServicesUtil.extractOptionally(truck, truckCRUD::add);
     }
 
     public Truck updateTruck(Truck truck) {
 
-        return truck;
+        return ServicesUtil.extractOptionally(truck, truckCRUD::update);
     }
 
     public Result removeTruck(String vin) {
 
-        return ResultFactory.createResult(true, "removed");
+        boolean success = truckCRUD.remove(vin);
+
+        if(success) {
+            return removed;
+        }
+        else {
+            return ResultFactory.createResult(false, "Could not remove Truck: " + vin);
+        }
     }
 
     public Invoice purchaseTrucks(String authorization, TruckPurchaseOrder order) {

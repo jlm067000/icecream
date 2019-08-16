@@ -40,7 +40,7 @@ public class TruckCRUD {
         }
     }
 
-    public Optional<Truck> addTruck(Truck truck) {
+    public Optional<Truck> add(Truck truck) {
 
         if(trucks.contains(truck)) {
             return Optional.empty();
@@ -51,25 +51,30 @@ public class TruckCRUD {
         return Optional.of(truck);
     }
 
-    public Optional<Truck> updateTruck(final Truck truck) {
+    public Optional<Truck> update(final Truck truck) {
 
         Truck persisted = trucks.stream()
                                 .filter(t -> Objects.equals(truck, t))
                                 .findAny()
                                 .orElse(null);
 
+        if(persisted == null) {
+            return Optional.empty();
+        }
+
+        trucks.remove(persisted);
         trucks.add(clone(truck));
 
         return Optional.of(truck);
     }
 
-    public boolean removeTruck(String vin) {
+    public boolean remove(String vin) {
 
         Predicate<Truck> condition = t -> Objects.equals(t.getVin(), vin);
         return trucks.removeIf(condition);
     }
 
-    public Set<Truck> getTrucks() {
+    public Set<Truck> findAll() {
 
         return trucks.stream()
                      .map(TruckCRUD::clone)

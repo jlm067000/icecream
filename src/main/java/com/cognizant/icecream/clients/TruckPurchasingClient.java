@@ -56,7 +56,7 @@ public class TruckPurchasingClient {
 
     private Optional<Truck> preexistingTruck(Set<Truck> trucks) {
 
-        Set<Truck> existing = truckCRUD.getTrucks();
+        Set<Truck> existing = truckCRUD.findAll();
 
         for(Truck truck : trucks) {
 
