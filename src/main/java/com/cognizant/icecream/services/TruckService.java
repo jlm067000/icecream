@@ -1,8 +1,8 @@
 package com.cognizant.icecream.services;
 
-import com.cognizant.icecream.clients.Result;
-import com.cognizant.icecream.clients.ResultFactory;
+import com.cognizant.icecream.clients.*;
 import com.cognizant.icecream.models.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -11,9 +11,22 @@ import java.util.Set;
 @Service
 public class TruckService {
 
+    private GarageCRUD garageCRUD;
+    private TruckCRUD truckCRUD;
+    private TruckPurchasingClient purchasingClient;
+
+    @Autowired
+    public TruckService(GarageCRUD garageCRUD, TruckCRUD truckCRUD, TruckPurchasingClient purchasingClient) {
+
+        this.garageCRUD = garageCRUD;
+        this.truckCRUD = truckCRUD;
+        this.purchasingClient = purchasingClient;
+    }
+
+
     public Truck getTruck(String vin) {
 
-        return new Truck();
+        return ServicesUtil.extractOptionally(vin, truckCRUD::findByVIN);
     }
 
     public Truck addTruck(Truck truck) {

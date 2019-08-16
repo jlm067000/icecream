@@ -3,6 +3,7 @@ package com.cognizant.icecream.services;
 import com.cognizant.icecream.clients.GarageCRUD;
 import com.cognizant.icecream.clients.Result;
 import com.cognizant.icecream.clients.SupplyClient;
+import com.cognizant.icecream.clients.TimeClient;
 import com.cognizant.icecream.models.Garage;
 import com.cognizant.icecream.models.TimeSlot;
 import org.junit.Before;
@@ -33,13 +34,12 @@ public class GarageServiceTest {
     private GarageService garageService;
     private GarageCRUD garageCRUD;
     private SupplyClient supplyClient;
+    private TimeClient timeClient;
 
     @BeforeClass
     public static void init() {
         futureTime = getTimeSlot(1);
         pastTime = getTimeSlot(-1);
-        invalidHour = getTimeSlot(futureTime.getDate(), 24);
-        nullDate = getTimeSlot(null, futureTime.getHour());
     }
 
     @Before
@@ -61,7 +61,12 @@ public class GarageServiceTest {
         supplyClient = Mockito.mock(SupplyClient.class);
         when(supplyClient.scheduleResupply(any(), any())).thenReturn(true);
 
-        garageService = new GarageService(garageCRUD, supplyClient);
+        timeClient = Mockito.mock(TimeClient.class);
+
+        when(timeClient.isValid(futureTime)).thenReturn(true);
+        when(timeClient.isValid(pastTime)).thenReturn(false);
+
+        garageService = new GarageService(garageCRUD, supplyClient, timeClient);
     }
 
     @Test
@@ -75,16 +80,7 @@ public class GarageServiceTest {
         assertFalse(result.isSuccess());
 
         result = garageService.resupply(VALID_CODE, pastTime);
-        assertTrue(result.isSuccess());
-        verify(supplyClient).scheduleResupply(VALID_CODE, pastTime);
-
-        result = garageService.resupply(VALID_CODE, nullDate);
-        assertTrue(result.isSuccess());
-        verify(supplyClient).scheduleResupply(VALID_CODE, nullDate);
-
-        result = garageService.resupply(VALID_CODE, invalidHour);
-        assertTrue(result.isSuccess());
-        verify(supplyClient).scheduleResupply(VALID_CODE, invalidHour);
+        assertFalse(result.isSuccess());
     }
 
     @Test

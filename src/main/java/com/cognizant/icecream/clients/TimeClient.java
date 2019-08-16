@@ -1,17 +1,15 @@
-package com.cognizant.icecream.validation;
+package com.cognizant.icecream.clients;
 
 import com.cognizant.icecream.models.TimeSlot;
+import org.springframework.stereotype.Service;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-public class FutureTimeValidator implements ConstraintValidator<FutureTime, TimeSlot> {
+@Service
+public class TimeClient {
 
-    @Override
-    public boolean isValid(TimeSlot timeSlot, ConstraintValidatorContext context) {
-
+    public boolean isValid(TimeSlot timeSlot) {
         return futureTime(timeSlot.getDate(), timeSlot.getHour());
     }
 
