@@ -9,16 +9,21 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.mockito.stubbing.Answer;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class GarageServiceTest {
+
+    private static final String VALID_CODE = "12";
+    private static final String INVALID_CODE = "11";
 
     private static TimeSlot futureTime;
     private static TimeSlot pastTime;
@@ -41,13 +46,20 @@ public class GarageServiceTest {
     public void setup() {
 
         Garage garage = new Garage();
-        garage.setCode("12");
+        garage.setCode(VALID_CODE);
 
         garageCRUD = Mockito.mock(GarageCRUD.class);
-        Mockito.when(garageCRUD.findByCode("12")).thenReturn(Optional.of(garage));
+        when(garageCRUD.findByCode(VALID_CODE)).thenReturn(Optional.of(garage));
+        when(garageCRUD.findByCode(INVALID_CODE)).thenReturn(Optional.empty());
+        when(garageCRUD.remove(VALID_CODE)).thenReturn(true);
+        when(garageCRUD.remove(INVALID_CODE)).thenReturn(false);
+
+        Answer<Optional<Garage>> crudAnswer = iom -> Optional.of(iom.getArgument(0));
+        when(garageCRUD.add(any())).then(crudAnswer);
+        when(garageCRUD.update(any())).then(crudAnswer);
 
         supplyClient = Mockito.mock(SupplyClient.class);
-        Mockito.when(supplyClient.scheduleResupply(any(), any())).thenReturn(true);
+        when(supplyClient.scheduleResupply(any(), any())).thenReturn(true);
 
         garageService = new GarageService(garageCRUD, supplyClient);
     }
@@ -55,25 +67,75 @@ public class GarageServiceTest {
     @Test
     public void testResupply() {
 
-        Result result = garageService.resupply("12", futureTime);
+        Result result = garageService.resupply(VALID_CODE, futureTime);
         assertTrue(result.isSuccess());
-        Mockito.verify(supplyClient).scheduleResupply("12", futureTime);
+        verify(supplyClient).scheduleResupply(VALID_CODE, futureTime);
 
-        result = garageService.resupply("11", futureTime);
+        result = garageService.resupply(INVALID_CODE, futureTime);
         assertFalse(result.isSuccess());
-        Mockito.verify(supplyClient).scheduleResupply("11", futureTime);
 
-        result = garageService.resupply("12", pastTime);
-        assertFalse(result.isSuccess());
-        Mockito.verify(supplyClient).scheduleResupply("12", pastTime);
+        result = garageService.resupply(VALID_CODE, pastTime);
+        assertTrue(result.isSuccess());
+        verify(supplyClient).scheduleResupply(VALID_CODE, pastTime);
 
-        result = garageService.resupply("12", nullDate);
-        assertFalse(result.isSuccess());
-        Mockito.verify(supplyClient).scheduleResupply("12", nullDate);
+        result = garageService.resupply(VALID_CODE, nullDate);
+        assertTrue(result.isSuccess());
+        verify(supplyClient).scheduleResupply(VALID_CODE, nullDate);
 
-        result = garageService.resupply("12", invalidHour);
+        result = garageService.resupply(VALID_CODE, invalidHour);
+        assertTrue(result.isSuccess());
+        verify(supplyClient).scheduleResupply(VALID_CODE, invalidHour);
+    }
+
+    @Test
+    public void testGetGarage() {
+
+        Garage garage = garageService.getGarage(VALID_CODE);
+
+        assertNotNull(garage);
+        assertEquals(VALID_CODE, garage.getCode());
+        verify(garageCRUD).findByCode(VALID_CODE);
+
+        garage = garageService.getGarage(INVALID_CODE);
+
+        assertNull(garage);
+        verify(garageCRUD).findByCode(INVALID_CODE);
+    }
+
+    @Test
+    public void testAddGarage() {
+
+        Garage newGarage = new Garage();
+        Garage added = garageService.addGarage(newGarage);
+
+        assertEquals(added, newGarage);
+        verify(garageCRUD).add(newGarage);
+    }
+
+    @Test
+    public void testUpdateGarage() {
+
+        Garage current = new Garage();
+        current.setCode(VALID_CODE);
+
+        Garage updated = garageService.updateGarage(current);
+
+        assertEquals(current, updated);
+        verify(garageCRUD).update(current);
+    }
+
+    @Test
+    public void testRemoveGarage() {
+
+        Result result = garageService.removeGarage(VALID_CODE);
+
+        assertTrue(result.isSuccess());
+        verify(garageCRUD).remove(VALID_CODE);
+
+        result = garageService.removeGarage(INVALID_CODE);
+
         assertFalse(result.isSuccess());
-        Mockito.verify(supplyClient).scheduleResupply("12", invalidHour);
+        verify(garageCRUD).remove(INVALID_CODE);
     }
 
     private static TimeSlot getTimeSlot(int dayOffset) {

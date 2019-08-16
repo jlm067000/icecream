@@ -9,6 +9,8 @@ import com.cognizant.icecream.models.TimeSlot;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class GarageService {
 
@@ -27,23 +29,62 @@ public class GarageService {
             return ResultFactory.createResult(false, "Garage " + garageCode + " not found");
         }
 
-        return ResultFactory.createResult(true, "scheduled");
+        boolean success = supplyClient.scheduleResupply(garageCode, timeSlot);
+
+        if(success) {
+            return ResultFactory.createResult(true, "scheduled");
+        }
+        else {
+            return ResultFactory.createResult(false, "Supply Service was not able to schedule resupply");
+        }
     }
 
     public Garage getGarage(String garageCode) {
 
-        return new Garage();
+
+        Optional<Garage> garage = garageCRUD.findByCode(garageCode);
+
+        if(garage.isPresent()) {
+            return garage.get();
+        }
+        else {
+            return null;
+        }
     }
 
     public Garage addGarage(Garage garage) {
-        return garage;
+
+        Optional<Garage> added = garageCRUD.add(garage);
+
+        if(added.isPresent()) {
+            return added.get();
+        }
+        else {
+            return null;
+        }
     }
 
     public Garage updateGarage(Garage garage) {
-        return garage;
+
+        Optional<Garage> updated = garageCRUD.update(garage);
+
+        if(updated.isPresent()) {
+            return updated.get();
+        }
+        else {
+            return null;
+        }
     }
 
     public Result removeGarage(String garageCode) {
-        return ResultFactory.createResult(true, "removed");
+
+        boolean success = garageCRUD.remove(garageCode);
+
+        if(success) {
+            return ResultFactory.createResult(true, "removed");
+        }
+        else {
+            return ResultFactory.createResult(false, "Could not remove Garage: " + garageCode);
+        }
     }
 }
