@@ -1,5 +1,5 @@
 package com.cognizant.icecream.models.result;
 
-public interface ServiceResult<T> extends Result {
+public interface ServiceResult<T> extends ClientResult {
     T getPayload();
 }

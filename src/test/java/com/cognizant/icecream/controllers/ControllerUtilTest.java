@@ -1,7 +1,7 @@
 package com.cognizant.icecream.controllers;
 
 import com.cognizant.icecream.models.result.ClientResult;
-import com.cognizant.icecream.clients.ClientResultFactory;
+import com.cognizant.icecream.clients.result.ClientResultFactory;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

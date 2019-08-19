@@ -1,4 +1,4 @@
-package com.cognizant.icecream.clients;
+package com.cognizant.icecream.clients.result;
 
 import com.cognizant.icecream.models.result.ClientResult;
 

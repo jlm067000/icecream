@@ -1,5 +1,6 @@
 package com.cognizant.icecream.clients;
 
+import com.cognizant.icecream.clients.result.ClientResultFactory;
 import com.cognizant.icecream.models.result.ClientResult;
 import com.cognizant.icecream.models.Neighborhood;
 import com.cognizant.icecream.models.TruckGarage;

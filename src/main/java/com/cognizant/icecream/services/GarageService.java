@@ -1,9 +1,13 @@
 package com.cognizant.icecream.services;
 
-import com.cognizant.icecream.clients.*;
-import com.cognizant.icecream.models.result.ClientResult;
+import com.cognizant.icecream.clients.result.ClientResultFactory;
+import com.cognizant.icecream.clients.GarageCRUD;
+import com.cognizant.icecream.clients.SupplyClient;
+import com.cognizant.icecream.clients.TimeClient;
 import com.cognizant.icecream.models.Garage;
 import com.cognizant.icecream.models.TimeSlot;
+import com.cognizant.icecream.models.result.ClientResult;
+import com.cognizant.icecream.models.result.ServiceResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,7 +38,7 @@ public class GarageService {
         this.timeClient = timeClient;
     }
 
-    public ClientResult resupply(String garageCode, TimeSlot timeSlot) {
+    public ServiceResult<Void> resupply(String garageCode, TimeSlot timeSlot) {
 
         if(!timeClient.isValid(timeSlot)) {
             return future;
@@ -49,22 +53,22 @@ public class GarageService {
         return success ? scheduled : couldNotResupply;
     }
 
-    public ClientResult getGarage(String garageCode) {
+    public ServiceResult<Garage> getGarage(String garageCode) {
 
         return garageCRUD.findByCode(garageCode);
     }
 
-    public ClientResult addGarage(Garage garage) {
+    public ServiceResult<Garage> addGarage(Garage garage) {
 
         return garageCRUD.add(garage);
     }
 
-    public ClientResult updateGarage(Garage garage) {
+    public ServiceResult<Garage> updateGarage(Garage garage) {
 
         return garageCRUD.update(garage);
     }
 
-    public ClientResult removeGarage(String garageCode) {
+    public ServiceResult<Void> removeGarage(String garageCode) {
 
         boolean success = garageCRUD.remove(garageCode);
 
