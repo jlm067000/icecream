@@ -1,7 +1,7 @@
 package com.cognizant.icecream.controllers;
 
-import com.cognizant.icecream.clients.Result;
-import com.cognizant.icecream.clients.ResultFactory;
+import com.cognizant.icecream.models.result.ClientResult;
+import com.cognizant.icecream.clients.ClientResultFactory;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -61,14 +61,14 @@ public class ControllerUtilTest {
     @Test
     public void testResultToResponse() {
 
-        Result result = ResultFactory.createResult(true, "");
+        ClientResult result = ClientResultFactory.createResult(true, "");
 
-        ResponseEntity<Result> response = resultToResponseDefault(result);
+        ResponseEntity<ClientResult> response = resultToResponseDefault(result);
 
         assertNull(response.getBody());
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        result = ResultFactory.createResult(false, "");
+        result = ClientResultFactory.createResult(false, "");
         response = resultToResponseDefault(result);
 
         assertEquals(result, response.getBody());

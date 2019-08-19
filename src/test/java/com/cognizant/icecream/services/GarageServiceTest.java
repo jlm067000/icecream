@@ -1,16 +1,16 @@
 package com.cognizant.icecream.services;
 
 import com.cognizant.icecream.clients.GarageCRUD;
-import com.cognizant.icecream.clients.Result;
+import com.cognizant.icecream.models.result.ClientResult;
 import com.cognizant.icecream.clients.SupplyClient;
 import com.cognizant.icecream.clients.TimeClient;
+import com.cognizant.icecream.mock.MockFactory;
 import com.cognizant.icecream.models.Garage;
 import com.cognizant.icecream.models.TimeSlot;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.stubbing.Answer;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,13 +23,17 @@ import static org.mockito.Mockito.when;
 
 public class GarageServiceTest {
 
-    private static final String VALID_CODE = "12";
-    private static final String INVALID_CODE = "11";
+    private static final String PERSISTED_CODE = "12";
+    private static final String UNPERSISTED_CODE = "11";
 
     private static TimeSlot futureTime;
     private static TimeSlot pastTime;
     private static TimeSlot invalidHour;
     private static TimeSlot nullDate;
+
+    private static Garage persisted;
+    private static Garage newGarage;
+    private static Garage invalidGarage;
 
     private GarageService garageService;
     private GarageCRUD garageCRUD;
@@ -38,25 +42,20 @@ public class GarageServiceTest {
 
     @BeforeClass
     public static void init() {
+
         futureTime = getTimeSlot(1);
         pastTime = getTimeSlot(-1);
+
+        persisted = generateGarage(PERSISTED_CODE);
+        newGarage = generateGarage(UNPERSISTED_CODE);
+
+        invalidGarage = new Garage();
     }
 
     @Before
     public void setup() {
 
-        Garage garage = new Garage();
-        garage.setCode(VALID_CODE);
-
-        garageCRUD = Mockito.mock(GarageCRUD.class);
-        when(garageCRUD.findByCode(VALID_CODE)).thenReturn(Optional.of(garage));
-        when(garageCRUD.findByCode(INVALID_CODE)).thenReturn(Optional.empty());
-        when(garageCRUD.remove(VALID_CODE)).thenReturn(true);
-        when(garageCRUD.remove(INVALID_CODE)).thenReturn(false);
-
-        Answer<Optional<Garage>> crudAnswer = iom -> Optional.of(iom.getArgument(0));
-        when(garageCRUD.add(any())).then(crudAnswer);
-        when(garageCRUD.update(any())).then(crudAnswer);
+        garageCRUD = MockFactory.createGarageCRUD(persisted, newGarage);
 
         supplyClient = Mockito.mock(SupplyClient.class);
         when(supplyClient.scheduleResupply(any(), any())).thenReturn(true);
@@ -72,39 +71,40 @@ public class GarageServiceTest {
     @Test
     public void testResupply() {
 
-        Result result = garageService.resupply(VALID_CODE, futureTime);
+        ClientResult result = garageService.resupply(PERSISTED_CODE, futureTime);
         assertTrue(result.isSuccess());
-        verify(supplyClient).scheduleResupply(VALID_CODE, futureTime);
+        verify(supplyClient).scheduleResupply(PERSISTED_CODE, futureTime);
 
-        result = garageService.resupply(INVALID_CODE, futureTime);
+        result = garageService.resupply(UNPERSISTED_CODE, futureTime);
         assertFalse(result.isSuccess());
 
-        result = garageService.resupply(VALID_CODE, pastTime);
+        result = garageService.resupply(PERSISTED_CODE, pastTime);
         assertFalse(result.isSuccess());
     }
 
     @Test
     public void testGetGarage() {
 
-        Garage garage = garageService.getGarage(VALID_CODE);
+        ClientResult result = garageService.getGarage(PERSISTED_CODE);
 
-        assertNotNull(garage);
-        assertEquals(VALID_CODE, garage.getCode());
-        verify(garageCRUD).findByCode(VALID_CODE);
+        assertTrue(result.isSuccess());
+        assertTrue(garage.isPresent());
+        assertEquals(PERSISTED_CODE, garage.get().getCode());
+        verify(garageCRUD).findByCode(PERSISTED_CODE);
 
-        garage = garageService.getGarage(INVALID_CODE);
+        garage = garageService.getGarage(UNPERSISTED_CODE);
 
-        assertNull(garage);
-        verify(garageCRUD).findByCode(INVALID_CODE);
+        assertFalse(garage.isPresent());
+        verify(garageCRUD).findByCode(UNPERSISTED_CODE);
     }
 
     @Test
     public void testAddGarage() {
 
-        Garage newGarage = new Garage();
-        Garage added = garageService.addGarage(newGarage);
+        Optional<Garage> added = garageService.addGarage(newGarage);
 
-        assertEquals(added, newGarage);
+        assertTrue(added.isPresent());
+        assertEquals(added.get(), newGarage);
         verify(garageCRUD).add(newGarage);
     }
 
@@ -112,9 +112,9 @@ public class GarageServiceTest {
     public void testUpdateGarage() {
 
         Garage current = new Garage();
-        current.setCode(VALID_CODE);
+        current.setCode(PERSISTED_CODE);
 
-        Garage updated = garageService.updateGarage(current);
+        Optional<Garage> updated = garageService.updateGarage(current);
 
         assertEquals(current, updated);
         verify(garageCRUD).update(current);
@@ -123,15 +123,15 @@ public class GarageServiceTest {
     @Test
     public void testRemoveGarage() {
 
-        Result result = garageService.removeGarage(VALID_CODE);
+        ClientResult result = garageService.removeGarage(PERSISTED_CODE);
 
         assertTrue(result.isSuccess());
-        verify(garageCRUD).remove(VALID_CODE);
+        verify(garageCRUD).remove(PERSISTED_CODE);
 
-        result = garageService.removeGarage(INVALID_CODE);
+        result = garageService.removeGarage(UNPERSISTED_CODE);
 
         assertFalse(result.isSuccess());
-        verify(garageCRUD).remove(INVALID_CODE);
+        verify(garageCRUD).remove(UNPERSISTED_CODE);
     }
 
     private static TimeSlot getTimeSlot(int dayOffset) {
@@ -149,5 +149,13 @@ public class GarageServiceTest {
         timeSlot.setHour(hour);
 
         return timeSlot;
+    }
+
+    private static Garage generateGarage(String code) {
+
+        Garage garage = new Garage();
+        garage.setCode(code);
+
+        return garage;
     }
 }

@@ -1,5 +1,6 @@
 package com.cognizant.icecream.clients;
 
+import com.cognizant.icecream.models.result.ClientResult;
 import com.cognizant.icecream.models.Neighborhood;
 import com.cognizant.icecream.models.TruckGarage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,13 +19,13 @@ public class TruckDeploymentClient {
     }
 
 
-    public Result deployTruck(TruckGarage truckGarage) {
+    public ClientResult deployTruck(TruckGarage truckGarage) {
 
         if(alreadyDeployed(truckGarage)) {
 
             String errMsg = "Truck has already been deployed to Garage " + truckGarage.getGarage().getCode();
 
-            return ResultFactory.createResult(false, errMsg);
+            return ClientResultFactory.createResult(false, errMsg);
         }
 
         try {
@@ -32,7 +33,7 @@ public class TruckDeploymentClient {
         }
         catch(InterruptedException ex) {}
 
-        return ResultFactory.createResult(true, "Deployment scheduled");
+        return ClientResultFactory.createResult(true, "Deployment scheduled");
     }
 
     private boolean alreadyDeployed(TruckGarage truckGarage) {

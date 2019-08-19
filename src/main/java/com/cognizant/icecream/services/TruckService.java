@@ -2,6 +2,7 @@ package com.cognizant.icecream.services;
 
 import com.cognizant.icecream.clients.*;
 import com.cognizant.icecream.models.*;
+import com.cognizant.icecream.models.result.ClientResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -11,14 +12,14 @@ import java.util.Set;
 @Service
 public class TruckService {
 
-    private static final Result removed;
+    private static final ClientResult removed;
 
     private GarageCRUD garageCRUD;
     private TruckCRUD truckCRUD;
     private TruckPurchasingClient purchasingClient;
 
     static {
-        removed = ResultFactory.createResult(true, "removed");
+        removed = ClientResultFactory.createResult(true, "removed");
     }
 
     @Autowired
@@ -44,7 +45,7 @@ public class TruckService {
         return ServicesUtil.extractOptionally(truck, truckCRUD::update);
     }
 
-    public Result removeTruck(String vin) {
+    public ClientResult removeTruck(String vin) {
 
         boolean success = truckCRUD.remove(vin);
 
@@ -52,7 +53,7 @@ public class TruckService {
             return removed;
         }
         else {
-            return ResultFactory.createResult(false, "Could not remove Truck: " + vin);
+            return ClientResultFactory.createResult(false, "Could not remove Truck: " + vin);
         }
     }
 
@@ -61,14 +62,14 @@ public class TruckService {
         return new Invoice();
     }
 
-    public Result deploy(TruckGarage truckGarage) {
+    public ClientResult deploy(TruckGarage truckGarage) {
 
-        return ResultFactory.createResult(true, "deployed");
+        return ClientResultFactory.createResult(true, "deployed");
     }
 
-    public Result patrol(boolean alcoholic, Neighborhood neighborhood) {
+    public ClientResult patrol(boolean alcoholic, Neighborhood neighborhood) {
 
-        return ResultFactory.createResult(true, "patrol");
+        return ClientResultFactory.createResult(true, "patrol");
     }
 
     public Set<Truck> getTrucks() {

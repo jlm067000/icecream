@@ -1,6 +1,7 @@
 package com.cognizant.icecream.services;
 
 import com.cognizant.icecream.clients.*;
+import com.cognizant.icecream.models.result.ClientResult;
 import com.cognizant.icecream.models.Garage;
 import com.cognizant.icecream.models.TimeSlot;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,20 +11,20 @@ import org.springframework.stereotype.Service;
 public class GarageService {
 
 
-    private static final Result future;
-    private static final Result scheduled;
-    private static final Result couldNotResupply;
-    private static final Result removed;
+    private static final ClientResult future;
+    private static final ClientResult scheduled;
+    private static final ClientResult couldNotResupply;
+    private static final ClientResult removed;
 
     private GarageCRUD garageCRUD;
     private SupplyClient supplyClient;
     private TimeClient timeClient;
 
     static {
-        future = ResultFactory.createResult(false, "Resupply must be scheduled for a future time slot.");
-        scheduled = ResultFactory.createResult(true, "scheduled");
-        couldNotResupply = ResultFactory.createResult(false, "Supply Service was not able to schedule resupply");
-        removed = ResultFactory.createResult(true, "removed");
+        future = ClientResultFactory.createResult(false, "Resupply must be scheduled for a future time slot.");
+        scheduled = ClientResultFactory.createResult(true, "scheduled");
+        couldNotResupply = ClientResultFactory.createResult(false, "Supply Service was not able to schedule resupply");
+        removed = ClientResultFactory.createResult(true, "removed");
     }
 
     @Autowired
@@ -33,14 +34,14 @@ public class GarageService {
         this.timeClient = timeClient;
     }
 
-    public Result resupply(String garageCode, TimeSlot timeSlot) {
+    public ClientResult resupply(String garageCode, TimeSlot timeSlot) {
 
         if(!timeClient.isValid(timeSlot)) {
             return future;
         }
 
         if(!garageCRUD.findByCode(garageCode).isPresent()) {
-            return ResultFactory.createResult(false, "Garage " + garageCode + " not found");
+            return ClientResultFactory.createResult(false, "Garage " + garageCode + " not found");
         }
 
         boolean success = supplyClient.scheduleResupply(garageCode, timeSlot);
@@ -48,22 +49,22 @@ public class GarageService {
         return success ? scheduled : couldNotResupply;
     }
 
-    public Garage getGarage(String garageCode) {
+    public ClientResult getGarage(String garageCode) {
 
-        return ServicesUtil.extractOptionally(garageCode, garageCRUD::findByCode);
+        return garageCRUD.findByCode(garageCode);
     }
 
-    public Garage addGarage(Garage garage) {
+    public ClientResult addGarage(Garage garage) {
 
-        return ServicesUtil.extractOptionally(garage, garageCRUD::add);
+        return garageCRUD.add(garage);
     }
 
-    public Garage updateGarage(Garage garage) {
+    public ClientResult updateGarage(Garage garage) {
 
-        return ServicesUtil.extractOptionally(garage, garageCRUD::update);
+        return garageCRUD.update(garage);
     }
 
-    public Result removeGarage(String garageCode) {
+    public ClientResult removeGarage(String garageCode) {
 
         boolean success = garageCRUD.remove(garageCode);
 
@@ -71,7 +72,7 @@ public class GarageService {
             return removed;
         }
         else {
-            return ResultFactory.createResult(false, "Could not remove Garage: " + garageCode);
+            return ClientResultFactory.createResult(false, "Could not remove Garage: " + garageCode);
         }
     }
 }

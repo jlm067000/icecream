@@ -1,6 +1,6 @@
 package com.cognizant.icecream.controllers;
 
-import com.cognizant.icecream.clients.Result;
+import com.cognizant.icecream.models.result.ClientResult;
 import com.cognizant.icecream.models.Garage;
 import com.cognizant.icecream.models.TimeSlot;
 import com.cognizant.icecream.services.GarageService;
@@ -55,7 +55,7 @@ public class GarageController {
     @DeleteMapping("{code}")
     public ResponseEntity<?> removeGarage(@PathVariable("code") String code) {
 
-        Result result = service.removeGarage(code);
+        ClientResult result = service.removeGarage(code);
 
         if(result.isSuccess()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -66,9 +66,9 @@ public class GarageController {
     }
 
     @PostMapping("{code}/resupply")
-    public ResponseEntity<Result> scheduleResupply(@PathVariable("code") String code, @Valid @RequestBody TimeSlot timeSlot) {
+    public ResponseEntity<ClientResult> scheduleResupply(@PathVariable("code") String code, @Valid @RequestBody TimeSlot timeSlot) {
 
-        Result result = service.resupply(code, timeSlot);
+        ClientResult result = service.resupply(code, timeSlot);
         return ControllerUtil.resultToResponseDefault(result);
     }
 }
