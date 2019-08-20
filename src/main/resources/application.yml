@@ -11,3 +11,8 @@ spring:
   h2:
     console:
       enabled: true
+
+objectPools:
+  serviceResult:
+    maxUnaccessedTime: 86400000
+    maxSize: 500

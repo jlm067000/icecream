@@ -1,4 +1,4 @@
-package com.cognizant.icecream.pools;
+package com.cognizant.icecream.pools.eviction;
 
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.EvictionConfig;
