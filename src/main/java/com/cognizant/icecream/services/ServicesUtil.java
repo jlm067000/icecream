@@ -11,5 +11,4 @@ class ServicesUtil {
 
         return (optional.isPresent()) ? optional.get() : null;
     }
-
 }

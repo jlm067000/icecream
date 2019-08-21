@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ResultKeyEvictionPolicy extends UnaccessedTimeEvictionPolicy<PoolKey<ServiceResult>> {
 
-    ResultKeyEvictionPolicy(@Value("objectPools.serviceResult.maxUnaccessedTime") long maxUnaccessedTime) {
+    ResultKeyEvictionPolicy(@Value("${objectPools.serviceResult.maxUnaccessedTime}") long maxUnaccessedTime) {
         super(maxUnaccessedTime);
     }
 }

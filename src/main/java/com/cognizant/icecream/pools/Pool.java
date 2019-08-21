@@ -128,6 +128,7 @@ abstract class Pool<T, U extends T> implements LocalObjectPool<T> {
         }
         else {
             borrowedObjects.remove(key);
+            returnObjects(key, object);
         }
 
         if(object == null) {
@@ -138,6 +139,15 @@ abstract class Pool<T, U extends T> implements LocalObjectPool<T> {
         }
 
         return object;
+    }
+
+    private void returnObjects(PoolKey<T> key, U object) {
+
+        try {
+            objectPool.returnObject(object);
+            keyPool.returnObject(key);
+        }
+        catch(Exception ex) {}
     }
 
     boolean updateObject(PoolKey<T> key, Consumer<U> updater) {

@@ -7,6 +7,7 @@ import com.cognizant.icecream.mock.MockFactory;
 import com.cognizant.icecream.models.Garage;
 import com.cognizant.icecream.models.TimeSlot;
 import com.cognizant.icecream.pools.api.ServiceResultPool;
+import com.cognizant.icecream.result.Result;
 import com.cognizant.icecream.result.ServiceResult;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -15,6 +16,7 @@ import org.mockito.Mockito;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.function.Function;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -33,6 +35,8 @@ public class GarageServiceTest {
     private static Garage newGarage;
     private static Garage invalidGarage;
 
+    private static Object dontcare;
+
     private GarageService garageService;
     private GarageCRUD garageCRUD;
     private SupplyClient supplyClient;
@@ -49,12 +53,15 @@ public class GarageServiceTest {
         newGarage = generateGarage(UNPERSISTED_CODE);
 
         invalidGarage = new Garage();
+
+        dontcare = new Object();
     }
 
     @Before
     public void setup() {
 
         garageCRUD = MockFactory.createGarageCRUD(persisted, newGarage);
+        resultPool = MockFactory.createServiceResultPool();
 
         supplyClient = Mockito.mock(SupplyClient.class);
         when(supplyClient.scheduleResupply(any(), any())).thenReturn(true);
@@ -64,13 +71,13 @@ public class GarageServiceTest {
         when(timeClient.isValid(futureTime)).thenReturn(true);
         when(timeClient.isValid(pastTime)).thenReturn(false);
 
-        garageService = new GarageService(garageCRUD, supplyClient, timeClient);
+        garageService = new GarageService(garageCRUD, supplyClient, timeClient, resultPool);
     }
 
     @Test
     public void testResupply() {
 
-        ServiceResult<Void> result = garageService.resupply(PERSISTED_CODE, futureTime);
+        Result result = garageService.resupply(PERSISTED_CODE, futureTime);
         assertTrue(result.isSuccess());
         verify(supplyClient).scheduleResupply(PERSISTED_CODE, futureTime);
 
@@ -82,61 +89,92 @@ public class GarageServiceTest {
     }
 
     @Test
-    public void testGetGarage() {
+    public void testGetGarage() throws Exception {
 
-        ServiceResult<Garage> result = garageService.getGarage(PERSISTED_CODE);
-
-        assertTrue(result.isSuccess());
-        assertNotNull(result.getPayload());
-        assertEquals(PERSISTED_CODE, result.getPayload().getCode());
+        garageService.getGarage(PERSISTED_CODE, this::testGetValidGarage);
         verify(garageCRUD).findByCode(PERSISTED_CODE);
 
-        result = garageService.getGarage(UNPERSISTED_CODE);
-
-        assertFalse(result.isSuccess());
-        assertNull(result.getPayload());
+        garageService.getGarage(UNPERSISTED_CODE, this::testGetInvalidGarage);
         verify(garageCRUD).findByCode(UNPERSISTED_CODE);
     }
 
-    @Test
-    public void testAddGarage() {
-
-        ServiceResult<Garage> result = garageService.addGarage(newGarage);
+    private Object testGetValidGarage(ServiceResult<?> result) {
 
         assertTrue(result.isSuccess());
-        assertEquals(result.getPayload(), newGarage);
-        verify(garageCRUD).add(newGarage);
+        assertNotNull(result.getPayload());
+        assertEquals(PERSISTED_CODE, ((Garage)result.getPayload()).getCode());
 
-        result = garageService.addGarage(invalidGarage);
+        return dontcare;
+    }
+
+    private Object testGetInvalidGarage(ServiceResult<?> result) {
 
         assertFalse(result.isSuccess());
         assertNull(result.getPayload());
-        verify(garageCRUD).add(invalidGarage);
+
+        return dontcare;
     }
 
     @Test
-    public void testUpdateGarage() {
+    public void testAddGarage() throws Exception {
 
-        Garage current = new Garage();
-        current.setCode(PERSISTED_CODE);
+        garageService.addGarage(newGarage, this::testAddNewGarage);
+        verify(garageCRUD).add(newGarage);
 
-        ServiceResult<Garage> result = garageService.updateGarage(current);
+        garageService.addGarage(invalidGarage, this::testAddInvalidGarage);
+        verify(garageCRUD).add(invalidGarage);
+    }
+
+    private Object testAddNewGarage(ServiceResult<?> result) {
 
         assertTrue(result.isSuccess());
-        assertEquals(current, result.getPayload());
-        verify(garageCRUD).update(current);
+        assertEquals(result.getPayload(), newGarage);
 
-        result = garageService.updateGarage(newGarage);
+        return dontcare;
+    }
+
+    private Object testAddInvalidGarage(ServiceResult<?> result) {
 
         assertFalse(result.isSuccess());
         assertNull(result.getPayload());
+
+        return dontcare;
+    }
+
+    @Test
+    public void testUpdateGarage() throws Exception {
+
+        Garage current = new Garage();
+        current.setCode(PERSISTED_CODE);
+        Function<ServiceResult, Object> resultProcessor = r -> testUpdateCurrentGarage(r, current);
+
+        garageService.updateGarage(current, resultProcessor);
+        verify(garageCRUD).update(current);
+
+        garageService.updateGarage(newGarage, this::testUpdateNewGarage);
         verify(garageCRUD).update(newGarage);
+    }
+
+    private Object testUpdateCurrentGarage(ServiceResult<?> result, Garage current) {
+
+        assertTrue(result.isSuccess());
+        assertEquals(current, result.getPayload());
+
+        return dontcare;
+    }
+
+    private Object testUpdateNewGarage(ServiceResult<?> result) {
+
+        assertFalse(result.isSuccess());
+        assertNull(result.getPayload());
+
+        return dontcare;
     }
 
     @Test
     public void testRemoveGarage() {
 
-        ServiceResult<Void> result = garageService.removeGarage(PERSISTED_CODE);
+        Result result = garageService.removeGarage(PERSISTED_CODE);
 
         assertTrue(result.isSuccess());
         verify(garageCRUD).remove(PERSISTED_CODE);

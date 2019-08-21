@@ -9,9 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 @Component
-class ResultPool extends Pool<ServiceResult, MutableServiceResult> implements ServiceResultPool<ServiceResult> {
+class ResultPool extends Pool<ServiceResult, MutableServiceResult> implements ServiceResultPool {
 
     @Autowired
     ResultPool(
@@ -54,4 +55,27 @@ class ResultPool extends Pool<ServiceResult, MutableServiceResult> implements Se
         result.setMessage(message);
         result.setPayload(payload);
      }
+
+     @Override
+     public <V> V processObject(PoolKey<ServiceResult> key, Function<ServiceResult, V> resultProcessor) {
+
+        V processed = super.processObject(key, resultProcessor);
+
+        if(processed instanceof MutableServiceResult) {
+            return (V)clone((MutableServiceResult<?>)processed);
+        }
+        else {
+            return processed;
+        }
+    }
+
+    private <T> ServiceResult clone(ServiceResult<T> result) {
+
+        MutableServiceResult<T> clone = new ServiceResultObject<>();
+        clone.setIsSuccess(result.isSuccess());
+        clone.setMessage(result.getMessage());
+        clone.setPayload(result.getPayload());
+
+        return clone;
+    }
 }

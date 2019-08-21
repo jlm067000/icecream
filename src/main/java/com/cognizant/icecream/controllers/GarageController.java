@@ -10,13 +10,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.Optional;
-
-import static com.cognizant.icecream.controllers.ControllerUtil.checkPathVariableMatch;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("icecream/garage")
 public class GarageController {
+
+    private static final String PATH_VARIABLE_MISMATCH = "The Request Body does not match path variable: code";
 
     private GarageService service;
 
@@ -26,30 +26,42 @@ public class GarageController {
     }
 
     @GetMapping("{code}")
-    public ResponseEntity<Garage> getGarage(@PathVariable("code") String code) {
+    public ResponseEntity<?> getGarage(@PathVariable("code") String code) {
 
-        Garage garage = service.getGarage(code);
-        return new ResponseEntity<>(garage, HttpStatus.OK);
+        try {
+            return service.getGarage(code, ControllerUtil::processRetrievalResult);
+        }
+        catch(Exception ex) {
+            return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PostMapping
-    public ResponseEntity<Garage> addGarage(@Valid @RequestBody Garage garage) {
+    public ResponseEntity<?> addGarage(@Valid @RequestBody Garage garage) {
 
-        garage = service.addGarage(garage);
-        return new ResponseEntity<>(garage, HttpStatus.CREATED);
+        try{
+            return service.addGarage(garage, ControllerUtil::processResult);
+        }
+        catch(Exception ex) {
+            return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PutMapping("{code}")
     public ResponseEntity<?> updateGarage(@PathVariable("code") String code, @Valid @RequestBody Garage garage) {
 
-        Optional<ResponseEntity<String>> errResponse = checkPathVariableMatch(code, garage::getCode, garage::setCode);
+        ResponseEntity<String> mismatchResponse = checkPathVariableMismatch(code, garage, PATH_VARIABLE_MISMATCH);
 
-        if(errResponse.isPresent()) {
-            return errResponse.get();
+        if(mismatchResponse != null) {
+            return mismatchResponse;
         }
 
-        garage = service.updateGarage(garage);
-        return new ResponseEntity<>(garage, HttpStatus.OK);
+        try {
+            return service.updateGarage(garage, ControllerUtil::processResult);
+        }
+        catch(Exception ex) {
+            return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @DeleteMapping("{code}")
@@ -69,6 +81,20 @@ public class GarageController {
     public ResponseEntity<Result> scheduleResupply(@PathVariable("code") String code, @Valid @RequestBody TimeSlot timeSlot) {
 
         Result result = service.resupply(code, timeSlot);
-        return ControllerUtil.resultToResponseDefault(result);
+        return ControllerUtil.processResult(result);
+    }
+
+    private static ResponseEntity<String> checkPathVariableMismatch(String pathVariable, Garage garage, String errorMsg)
+    {
+        if(garage.getCode() == null) {
+            garage.setCode(pathVariable);
+            return null;
+        }
+
+        if(Objects.equals(garage.getCode(), pathVariable)) {
+            return null;
+        }
+
+        return new ResponseEntity<>(errorMsg, HttpStatus.BAD_REQUEST);
     }
 }

@@ -1,6 +1,7 @@
 package com.cognizant.icecream.controllers;
 
 import com.cognizant.icecream.result.Result;
+import com.cognizant.icecream.result.ServiceResult;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -11,28 +12,7 @@ import java.util.function.Supplier;
 
 class ControllerUtil {
 
-    static <T> Optional<ResponseEntity<String>> checkPathVariableMatch(
-            T pathVariable,
-            Supplier<T> getter,
-            Consumer<T> setter)
-    {
-
-        if(getter.get() == null) {
-            setter.accept(pathVariable);
-            return Optional.empty();
-        }
-
-        if(Objects.equals(getter.get(), pathVariable)) {
-            return Optional.empty();
-        }
-
-        String errorMsg = "Path variable " + pathVariable + " does not match Request Body.";
-        ResponseEntity<String> response = new ResponseEntity<>(errorMsg, HttpStatus.BAD_REQUEST);
-
-        return Optional.of(response);
-    }
-
-    static ResponseEntity<Result> resultToResponseDefault(Result result) {
+    static ResponseEntity<Result> processResult(Result result) {
 
         if(result.isSuccess()) {
             return new ResponseEntity<>(HttpStatus.OK);
@@ -42,4 +22,23 @@ class ControllerUtil {
         }
     }
 
+    static ResponseEntity<?> processResult(ServiceResult<?> result) {
+
+        return processResult(result, HttpStatus.BAD_REQUEST);
+    }
+
+    static ResponseEntity<?> processRetrievalResult(ServiceResult<?> result) {
+
+        return processResult(result, HttpStatus.NOT_FOUND);
+    }
+
+    static ResponseEntity<?> processResult(ServiceResult<?> result, HttpStatus failCode) {
+
+        if(result.isSuccess()) {
+            return new ResponseEntity<>(result.getPayload(), HttpStatus.OK);
+        }
+        else {
+            return new ResponseEntity<>(result.getMessage(), failCode);
+        }
+    }
 }

@@ -1,7 +1,7 @@
 package com.cognizant.icecream.controllers;
 
-import com.cognizant.icecream.result.Result;
 import com.cognizant.icecream.models.*;
+import com.cognizant.icecream.result.Result;
 import com.cognizant.icecream.services.TruckService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -9,15 +9,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.Set;
 
-import static com.cognizant.icecream.controllers.ControllerUtil.checkPathVariableMatch;
-import static com.cognizant.icecream.controllers.ControllerUtil.resultToResponseDefault;
+import static com.cognizant.icecream.controllers.ControllerUtil.processResult;
 
 @RestController
 @RequestMapping("icecream/truck")
 public class TruckController {
+
+    private static final String PATH_VARIABLE_MISMATCH = "The Request Body does not match path variable: vin";
 
     private TruckService service;
 
@@ -43,10 +44,10 @@ public class TruckController {
     @PutMapping("{vin}")
     public ResponseEntity<?> updateTruck(@PathVariable("vin") String vin, @Valid @RequestBody Truck truck) {
 
-        Optional<ResponseEntity<String>> errResponse = checkPathVariableMatch(vin, truck::getVin, truck::setVin);
+        ResponseEntity<String> mismatchResponse = checkPathVariableMismatch(vin, truck, PATH_VARIABLE_MISMATCH);
 
-        if(errResponse.isPresent()) {
-            return errResponse.get();
+        if(mismatchResponse != null) {
+            return mismatchResponse;
         }
 
         truck = service.updateTruck(truck);
@@ -119,14 +120,27 @@ public class TruckController {
     public ResponseEntity<Result> deploy(@Valid @RequestBody TruckGarage truckGarage) {
 
         Result result = service.deploy(truckGarage);
-        return resultToResponseDefault(result);
+        return processResult(result);
     }
 
     @PostMapping("patrol")
     public ResponseEntity<Result> patrolAlcoholic(@RequestParam boolean alcoholic, @RequestBody Neighborhood neighborhood) {
 
         Result result = service.patrol(alcoholic, neighborhood);
-        return resultToResponseDefault(result);
+        return processResult(result);
     }
 
+    private static ResponseEntity<String> checkPathVariableMismatch(String pathVariable, Truck truck, String errorMsg)
+    {
+        if(truck.getVin() == null) {
+            truck.setVin(pathVariable);
+            return null;
+        }
+
+        if(Objects.equals(truck.getVin(), pathVariable)) {
+            return null;
+        }
+
+        return new ResponseEntity<>(errorMsg, HttpStatus.BAD_REQUEST);
+    }
 }

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 class ResultConfig extends GenericObjectPoolConfig<MutableServiceResult> {
 
     @Autowired
-    ResultConfig(EvictionPolicy<MutableServiceResult> evictionPolicy, @Value("objectPools.serviceResult.maxSize") int maxSize) {
+    ResultConfig(EvictionPolicy<MutableServiceResult> evictionPolicy, @Value("${objectPools.serviceResult.maxSize}") int maxSize) {
 
         setEvictionPolicy(evictionPolicy);
         setMaxTotal(maxSize);
