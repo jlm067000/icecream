@@ -7,10 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-class ResultKeyConfig extends KeyPoolConfig<ServiceResult> {
+class ServiceResultKeyConfig extends KeyPoolConfig<ServiceResult> {
 
     @Autowired
-    ResultKeyConfig(EvictionPolicy<PoolKey<ServiceResult>> evictionPolicy) {
+    ServiceResultKeyConfig(EvictionPolicy<PoolKey<ServiceResult>> evictionPolicy) {
         super(evictionPolicy);
     }
 }

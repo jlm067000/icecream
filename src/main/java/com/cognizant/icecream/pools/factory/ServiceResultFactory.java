@@ -9,7 +9,7 @@ import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.springframework.stereotype.Component;
 
 @Component
-class ResultFactory implements PooledObjectFactory<MutableServiceResult> {
+class ServiceResultFactory implements PooledObjectFactory<MutableServiceResult> {
 
 
     @Override

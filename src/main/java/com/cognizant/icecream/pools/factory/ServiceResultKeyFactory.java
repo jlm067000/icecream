@@ -4,9 +4,9 @@ import com.cognizant.icecream.result.ServiceResult;
 import org.springframework.stereotype.Component;
 
 @Component
-class ResultKeyFactory extends KeyFactory<ServiceResult> {
+class ServiceResultKeyFactory extends KeyFactory<ServiceResult> {
 
-    ResultKeyFactory() {
+    ServiceResultKeyFactory() {
         super(ServiceResult.class);
     }
 }

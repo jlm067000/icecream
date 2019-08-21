@@ -12,10 +12,10 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 @Component
-class ResultPool extends Pool<ServiceResult, MutableServiceResult> implements ServiceResultPool {
+class ServiceResultObjectPool extends Pool<ServiceResult, MutableServiceResult> implements ServiceResultPool {
 
     @Autowired
-    ResultPool(
+    ServiceResultObjectPool(
             PooledObjectFactory<MutableServiceResult> factory,
             PooledObjectFactory<PoolKey<ServiceResult>> keyFactory,
             GenericObjectPoolConfig<MutableServiceResult> config,
