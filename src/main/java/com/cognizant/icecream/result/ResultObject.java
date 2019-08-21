@@ -1,10 +1,8 @@
-package com.cognizant.icecream.clients.result;
-
-import com.cognizant.icecream.models.result.ClientResult;
+package com.cognizant.icecream.result;
 
 import java.util.Objects;
 
-class ResultObject implements ClientResult {
+class ResultObject implements Result {
 
     private boolean success;
     private String message;

@@ -1,13 +1,12 @@
 package com.cognizant.icecream.pools;
 
-import com.cognizant.icecream.models.result.MutableServiceResult;
+import com.cognizant.icecream.result.MutableServiceResult;
 
 public class ServiceResultObject<T> implements MutableServiceResult<T> {
 
     private boolean isSuccess;
     private String message;
     private T payload;
-
 
     @Override
     public void setIsSuccess(boolean isSuccess) {

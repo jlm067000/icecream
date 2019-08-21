@@ -1,9 +1,9 @@
 package com.cognizant.icecream.services;
 
 import com.cognizant.icecream.clients.*;
-import com.cognizant.icecream.clients.result.ClientResultFactory;
+import com.cognizant.icecream.result.ResultFactory;
 import com.cognizant.icecream.models.*;
-import com.cognizant.icecream.models.result.ClientResult;
+import com.cognizant.icecream.result.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,14 +13,14 @@ import java.util.Set;
 @Service
 public class TruckService {
 
-    private static final ClientResult removed;
+    private static final Result removed;
 
     private GarageCRUD garageCRUD;
     private TruckCRUD truckCRUD;
     private TruckPurchasingClient purchasingClient;
 
     static {
-        removed = ClientResultFactory.createResult(true, "removed");
+        removed = ResultFactory.createResult(true, "removed");
     }
 
     @Autowired
@@ -46,7 +46,7 @@ public class TruckService {
         return ServicesUtil.extractOptionally(truck, truckCRUD::update);
     }
 
-    public ClientResult removeTruck(String vin) {
+    public Result removeTruck(String vin) {
 
         boolean success = truckCRUD.remove(vin);
 
@@ -54,7 +54,7 @@ public class TruckService {
             return removed;
         }
         else {
-            return ClientResultFactory.createResult(false, "Could not remove Truck: " + vin);
+            return ResultFactory.createResult(false, "Could not remove Truck: " + vin);
         }
     }
 
@@ -63,14 +63,14 @@ public class TruckService {
         return new Invoice();
     }
 
-    public ClientResult deploy(TruckGarage truckGarage) {
+    public Result deploy(TruckGarage truckGarage) {
 
-        return ClientResultFactory.createResult(true, "deployed");
+        return ResultFactory.createResult(true, "deployed");
     }
 
-    public ClientResult patrol(boolean alcoholic, Neighborhood neighborhood) {
+    public Result patrol(boolean alcoholic, Neighborhood neighborhood) {
 
-        return ClientResultFactory.createResult(true, "patrol");
+        return ResultFactory.createResult(true, "patrol");
     }
 
     public Set<Truck> getTrucks() {

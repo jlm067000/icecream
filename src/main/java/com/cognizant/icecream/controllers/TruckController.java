@@ -1,6 +1,6 @@
 package com.cognizant.icecream.controllers;
 
-import com.cognizant.icecream.models.result.ClientResult;
+import com.cognizant.icecream.result.Result;
 import com.cognizant.icecream.models.*;
 import com.cognizant.icecream.services.TruckService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +56,7 @@ public class TruckController {
     @DeleteMapping("{vin}")
     public ResponseEntity<?> removeTruck(@PathVariable("vin") String vin) {
 
-        ClientResult result = service.removeTruck(vin);
+        Result result = service.removeTruck(vin);
 
         if(result.isSuccess()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -116,16 +116,16 @@ public class TruckController {
     }
 
     @PostMapping("deploy")
-    public ResponseEntity<ClientResult> deploy(@Valid @RequestBody TruckGarage truckGarage) {
+    public ResponseEntity<Result> deploy(@Valid @RequestBody TruckGarage truckGarage) {
 
-        ClientResult result = service.deploy(truckGarage);
+        Result result = service.deploy(truckGarage);
         return resultToResponseDefault(result);
     }
 
     @PostMapping("patrol")
-    public ResponseEntity<ClientResult> patrolAlcoholic(@RequestParam boolean alcoholic, @RequestBody Neighborhood neighborhood) {
+    public ResponseEntity<Result> patrolAlcoholic(@RequestParam boolean alcoholic, @RequestBody Neighborhood neighborhood) {
 
-        ClientResult result = service.patrol(alcoholic, neighborhood);
+        Result result = service.patrol(alcoholic, neighborhood);
         return resultToResponseDefault(result);
     }
 

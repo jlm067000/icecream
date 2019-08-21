@@ -1,7 +1,7 @@
 package com.cognizant.icecream.pools.factory;
 
 import com.cognizant.icecream.models.Garage;
-import com.cognizant.icecream.models.result.MutableServiceResult;
+import com.cognizant.icecream.result.MutableServiceResult;
 import com.cognizant.icecream.pools.ServiceResultObject;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.PooledObjectFactory;

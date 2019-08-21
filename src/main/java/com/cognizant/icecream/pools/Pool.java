@@ -1,8 +1,8 @@
 package com.cognizant.icecream.pools;
 
+import com.cognizant.icecream.pools.api.LocalObjectPool;
 import org.apache.commons.pool2.ObjectPool;
 import org.apache.commons.pool2.PooledObjectFactory;
-import org.apache.commons.pool2.impl.EvictionPolicy;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
@@ -11,51 +11,30 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-abstract class Pool<T> {
+abstract class Pool<T, U extends T> implements LocalObjectPool<T> {
 
-    private final int size;
-    private final Map<PoolKey<T>, T> borrowedObjects;
-    private final Map<PoolKey<T>, T> unpooledObjects;
+    private final Map<PoolKey<T>, U> borrowedObjects;
+    private final Map<PoolKey<T>, U> unpooledObjects;
     private final ObjectPool<PoolKey<T>> keyPool;
-    private final ObjectPool<T> objectPool;
+    private final ObjectPool<U> objectPool;
 
     Pool(
-            int size,
-            PooledObjectFactory<T> factory,
+            PooledObjectFactory<U> factory,
             PooledObjectFactory<PoolKey<T>> keyFactory,
-            EvictionPolicy<T> evictionPolicy,
-            EvictionPolicy<PoolKey<T>> keyEvictionPolicy
+            GenericObjectPoolConfig<U> config,
+            GenericObjectPoolConfig<PoolKey<T>> keyConfig
     ) {
 
-        this.size = size;
         this.borrowedObjects = new HashMap<>();
         this.unpooledObjects = new HashMap<>();
 
-        this.keyPool = new GenericObjectPool<>(keyFactory, createKeyPoolConfig(keyEvictionPolicy));
-        this.objectPool = new GenericObjectPool<>(factory, createPoolConfig(evictionPolicy));
-    }
-
-
-    private GenericObjectPoolConfig<PoolKey<T>> createKeyPoolConfig(EvictionPolicy<PoolKey<T>> evictionPolicy) {
-
-        GenericObjectPoolConfig<PoolKey<T>> config = new GenericObjectPoolConfig<>();
-        config.setEvictionPolicy(evictionPolicy);
-
-        return config;
-    }
-
-    private GenericObjectPoolConfig<T> createPoolConfig(EvictionPolicy<T> evictionPolicy) {
-
-        GenericObjectPoolConfig<T> config = new GenericObjectPoolConfig<>();
-        config.setEvictionPolicy(evictionPolicy);
-        config.setMaxTotal(size);
-
-        return config;
+        this.keyPool = new GenericObjectPool<>(keyFactory, keyConfig);
+        this.objectPool = new GenericObjectPool<>(factory, config);
     }
 
     PoolKey<T> reservePooledObject() {
 
-        T reserved = reserveObject();
+        U reserved = reserveObject();
 
         if(reserved == null) {
             return null;
@@ -72,13 +51,13 @@ abstract class Pool<T> {
         return key;
     }
 
-    private T reserveObject() {
+    private U reserveObject() {
 
         if(objectPool.getNumIdle() == 0) {
             return null;
         }
 
-        T reserved;
+        U reserved;
 
         try {
             reserved = objectPool.borrowObject();
@@ -90,7 +69,7 @@ abstract class Pool<T> {
         return reserved;
     }
 
-    private PoolKey<T> reserveKey(T object) {
+    private PoolKey<T> reserveKey(U object) {
 
         PoolKey<T> key;
 
@@ -111,7 +90,7 @@ abstract class Pool<T> {
         return key;
     }
 
-    PoolKey<T> addUnpooledObject(T object) throws Exception {
+    PoolKey<T> addUnpooledObject(U object) throws Exception {
 
         PoolKey<T> key = keyPool.borrowObject();
         unpooledObjects.put(key, object);
@@ -119,7 +98,7 @@ abstract class Pool<T> {
         return key;
     }
 
-    void processObject(PoolKey<T> key, Consumer<T> objectProcessor) {
+    public void processObject(PoolKey<T> key, Consumer<T> objectProcessor) {
 
         T object = retrieveObject(key);
 
@@ -128,7 +107,7 @@ abstract class Pool<T> {
         }
     }
 
-    <U> U processObject(PoolKey<T> key, Function<T, U> objectProcessor) {
+    public <V> V processObject(PoolKey<T> key, Function<T, V> objectProcessor) {
 
         T object = retrieveObject(key);
 
@@ -140,9 +119,9 @@ abstract class Pool<T> {
         }
     }
 
-    T retrieveObject(PoolKey<T> key) {
+    U retrieveObject(PoolKey<T> key) {
 
-        T object = borrowedObjects.get(key);
+        U object = borrowedObjects.get(key);
 
         if(object == null) {
             object = unpooledObjects.get(key);
@@ -161,9 +140,9 @@ abstract class Pool<T> {
         return object;
     }
 
-    boolean updateObject(PoolKey<T> key, Consumer<T> updater) {
+    boolean updateObject(PoolKey<T> key, Consumer<U> updater) {
 
-        T object = retrieveObject(key);
+        U object = retrieveObject(key);
 
         if(object == null) {
             return false;
@@ -173,5 +152,4 @@ abstract class Pool<T> {
 
         return true;
     }
-
 }

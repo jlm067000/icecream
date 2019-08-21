@@ -1,7 +1,7 @@
 package com.cognizant.icecream.services;
 
 import com.cognizant.icecream.clients.GarageCRUD;
-import com.cognizant.icecream.models.result.ClientResult;
+import com.cognizant.icecream.result.Result;
 import com.cognizant.icecream.clients.TruckCRUD;
 import com.cognizant.icecream.clients.TruckPurchasingClient;
 import com.cognizant.icecream.models.Truck;
@@ -103,7 +103,7 @@ public class TruckServiceTest {
     @Test
     public void testRemoveTruck() {
 
-        ClientResult result = truckService.removeTruck(VIN12);
+        Result result = truckService.removeTruck(VIN12);
 
         assertTrue(result.isSuccess());
         verify(truckCRUD).remove(VIN12);

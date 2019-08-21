@@ -1,22 +1,20 @@
 package com.cognizant.icecream.services;
 
 import com.cognizant.icecream.clients.GarageCRUD;
-import com.cognizant.icecream.models.result.ClientResult;
 import com.cognizant.icecream.clients.SupplyClient;
 import com.cognizant.icecream.clients.TimeClient;
 import com.cognizant.icecream.mock.MockFactory;
 import com.cognizant.icecream.models.Garage;
 import com.cognizant.icecream.models.TimeSlot;
-import com.cognizant.icecream.models.result.ServiceResult;
+import com.cognizant.icecream.pools.api.ServiceResultPool;
+import com.cognizant.icecream.result.ServiceResult;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.security.Provider;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,8 +28,6 @@ public class GarageServiceTest {
 
     private static TimeSlot futureTime;
     private static TimeSlot pastTime;
-    private static TimeSlot invalidHour;
-    private static TimeSlot nullDate;
 
     private static Garage persisted;
     private static Garage newGarage;
@@ -41,6 +37,7 @@ public class GarageServiceTest {
     private GarageCRUD garageCRUD;
     private SupplyClient supplyClient;
     private TimeClient timeClient;
+    private ServiceResultPool resultPool;
 
     @BeforeClass
     public static void init() {

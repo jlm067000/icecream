@@ -1,4 +1,4 @@
-package com.cognizant.icecream.models.result;
+package com.cognizant.icecream.result;
 
 public interface MutableServiceResult<T> extends ServiceResult<T> {
 
