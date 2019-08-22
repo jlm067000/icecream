@@ -1,8 +1,6 @@
-package com.cognizant.icecream.pools;
+package com.cognizant.icecream.result;
 
-import com.cognizant.icecream.result.MutableServiceResult;
-
-public class ServiceResultObject<T> implements MutableServiceResult<T> {
+class ServiceResultObject<T> implements MutableServiceResult<T> {
 
     private boolean isSuccess;
     private String message;

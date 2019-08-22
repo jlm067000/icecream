@@ -1,41 +1,36 @@
 package com.cognizant.icecream.pools.factory;
 
-import com.cognizant.icecream.models.Garage;
 import com.cognizant.icecream.result.MutableServiceResult;
-import com.cognizant.icecream.pools.ServiceResultObject;
+import com.cognizant.icecream.result.ResultFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.PooledObjectFactory;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
-import org.springframework.stereotype.Component;
 
-@Component
-class ServiceResultFactory implements PooledObjectFactory<MutableServiceResult> {
-
+abstract class ServiceResultFactory<T> implements PooledObjectFactory<MutableServiceResult<T>> {
 
     @Override
-    public PooledObject<MutableServiceResult> makeObject() {
+    public PooledObject<MutableServiceResult<T>> makeObject() {
 
-        MutableServiceResult<Garage> result = new ServiceResultObject<>();
-
+        MutableServiceResult<T> result = ResultFactory.createMutableServiceResult();
         return new DefaultPooledObject<>(result);
     }
 
     @Override
-    public void destroyObject(PooledObject<MutableServiceResult> p) {
+    public void destroyObject(PooledObject<MutableServiceResult<T>> p) {
 
         passivateObject(p);
     }
 
     @Override
-    public boolean validateObject(PooledObject<MutableServiceResult> p) {
+    public boolean validateObject(PooledObject<MutableServiceResult<T>> p) {
         return true;
     }
 
     @Override
-    public void activateObject(PooledObject<MutableServiceResult> p) {}
+    public void activateObject(PooledObject<MutableServiceResult<T>> p) {}
 
     @Override
-    public void passivateObject(PooledObject<MutableServiceResult> p) {
+    public void passivateObject(PooledObject<MutableServiceResult<T>> p) {
 
         p.getObject().setMessage(null);
         p.getObject().setPayload(null);

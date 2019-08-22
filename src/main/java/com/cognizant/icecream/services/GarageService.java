@@ -1,7 +1,8 @@
 package com.cognizant.icecream.services;
 
-import com.cognizant.icecream.pools.PoolKey;
+import com.cognizant.icecream.pools.PoolCapacityException;
 import com.cognizant.icecream.pools.api.ServiceResultPool;
+import com.cognizant.icecream.result.MutableServiceResult;
 import com.cognizant.icecream.result.ResultFactory;
 import com.cognizant.icecream.clients.GarageCRUD;
 import com.cognizant.icecream.clients.SupplyClient;
@@ -30,7 +31,7 @@ public class GarageService {
     private GarageCRUD garageCRUD;
     private SupplyClient supplyClient;
     private TimeClient timeClient;
-    private ServiceResultPool resultPool;
+    private ServiceResultPool<Garage> resultPool;
 
     static {
         FUTURE = ResultFactory.createResult(false, "Resupply must be SCHEDULED for a FUTURE time slot.");
@@ -40,7 +41,7 @@ public class GarageService {
     }
 
     @Autowired
-    public GarageService(GarageCRUD garageCRUD, SupplyClient supplyClient, TimeClient timeClient, ServiceResultPool resultPool) {
+    public GarageService(GarageCRUD garageCRUD, SupplyClient supplyClient, TimeClient timeClient, ServiceResultPool<Garage> resultPool) {
         this.garageCRUD = garageCRUD;
         this.supplyClient = supplyClient;
         this.timeClient = timeClient;
@@ -102,22 +103,23 @@ public class GarageService {
                     String formatErrStr,
                     String formatArg,
                     Function<ServiceResult, T> resultProcessor
-    ) throws Exception
-    {
-        PoolKey<ServiceResult> key = processOptional(optional, formatErrStr, formatArg);
-        return resultPool.processObject(key, resultProcessor);
+    ) {
+        MutableServiceResult<Garage> result = processOptional(optional, formatErrStr, formatArg);
+        T processed = resultProcessor.apply(result);
+        resultPool.returnObject(result);
+
+        return processed;
     }
 
 
-    private PoolKey<ServiceResult> processOptional(Optional<Garage> optional, String formatErrStr, String formatArg)
-            throws Exception
-    {
+    private MutableServiceResult processOptional(Optional<Garage> optional, String formatErrStr, String formatArg) {
+
         if(optional.isPresent()) {
-            return resultPool.createResult(true, null, optional.get());
+            return ServicesUtil.createResult(true, null, optional.get(), resultPool);
         }
         else {
             String errMsg = String.format(formatErrStr, formatArg);
-            return resultPool.createResult(false, errMsg, null);
+            return ServicesUtil.createResult(false, errMsg, null, resultPool);
         }
     }
 }

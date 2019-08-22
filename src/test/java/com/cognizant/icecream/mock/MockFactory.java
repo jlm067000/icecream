@@ -11,7 +11,8 @@ public class MockFactory {
         return GarageCRUDFactory.createMock(persisted, newGarage);
     }
 
-    public static ServiceResultPool createServiceResultPool() {
-        return new ResultPoolMock();
+    public static <T> ServiceResultPool<T> createServiceResultPool() {
+
+        return ServiceResultPoolFactory.createServiceResultPool();
     }
 }

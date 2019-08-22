@@ -41,7 +41,7 @@ public class GarageServiceTest {
     private GarageCRUD garageCRUD;
     private SupplyClient supplyClient;
     private TimeClient timeClient;
-    private ServiceResultPool resultPool;
+    private ServiceResultPool<Garage> resultPool;
 
     @BeforeClass
     public static void init() {

@@ -1,9 +1,9 @@
 package com.cognizant.icecream.pools.api;
 
-import com.cognizant.icecream.pools.PoolKey;
-import com.cognizant.icecream.result.ServiceResult;
+import com.cognizant.icecream.pools.PoolCapacityException;
+import com.cognizant.icecream.result.MutableServiceResult;
 
-public interface ServiceResultPool extends LocalObjectPool<ServiceResult> {
+public interface ServiceResultPool<T> extends LocalObjectPool<MutableServiceResult<T>> {
 
-    <V> PoolKey<ServiceResult> createResult(boolean success, String message, V payload) throws Exception;
+    MutableServiceResult<T> createResult(boolean success, String message, T payload) throws PoolCapacityException, Exception;
 }

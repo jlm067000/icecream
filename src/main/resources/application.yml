@@ -14,5 +14,5 @@ spring:
 
 objectPools:
   serviceResult:
-    maxUnaccessedTime: 86400000
-    maxSize: 500
+    maxUnaccessedTime: 300000
+    maxSize: 1000
