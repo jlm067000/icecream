@@ -65,21 +65,21 @@ public class GarageService {
         return success ? SCHEDULED : COULD_NOT_RESUPPLY;
     }
 
-    public <T> T getGarage(String garageCode, Function<ServiceResult, T> resultProcessor) throws Exception {
+    public <T> T getGarage(String garageCode, Function<ServiceResult, T> resultProcessor) {
 
         Optional<Garage> garage = garageCRUD.findByCode(garageCode);
 
         return processOptional(garage, NOT_FOUND, garageCode, resultProcessor);
     }
 
-    public <T> T addGarage(Garage garage, Function<ServiceResult, T> resultProcessor) throws Exception {
+    public <T> T addGarage(Garage garage, Function<ServiceResult, T> resultProcessor) {
 
         Optional<Garage> added = garageCRUD.add(garage);
 
         return processOptional(added, COULD_NOT_ADD, garage.getCode(), resultProcessor);
     }
 
-    public <T> T updateGarage(Garage garage, Function<ServiceResult, T> resultProcessor) throws Exception {
+    public <T> T updateGarage(Garage garage, Function<ServiceResult, T> resultProcessor) {
 
         Optional<Garage> updated = garageCRUD.update(garage);
 

@@ -10,6 +10,6 @@ abstract class DefaultObjectPoolConfig<T> extends GenericObjectPoolConfig<T> {
         setEvictionPolicy(evictionPolicy);
         setMaxTotal(maxSize);
         setMaxWaitMillis(0);
-        setBlockWhenExhausted(false);
+        setBlockWhenExhausted(true);
     }
 }

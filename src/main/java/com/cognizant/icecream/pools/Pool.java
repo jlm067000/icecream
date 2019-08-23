@@ -29,6 +29,10 @@ public abstract class Pool<T> implements LocalObjectPool<T> {
         }
         catch(Exception ex) {
 
+            if(!objectPool.getBlockWhenExhausted()) {
+                throw ex;
+            }
+
             int poolCount = objectPool.getNumIdle() + objectPool.getNumActive();
             int capacity = objectPool.getMaxTotal();
 

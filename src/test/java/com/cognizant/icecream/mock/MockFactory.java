@@ -15,4 +15,9 @@ public class MockFactory {
 
         return ServiceResultPoolFactory.createServiceResultPool();
     }
+
+    public static <T> DefaultAbandonedConfigMock<T> createAbandonedConfig(int timeout) {
+
+        return new DefaultAbandonedConfigMock<>(timeout);
+    }
 }
