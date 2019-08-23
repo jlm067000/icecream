@@ -1,15 +1,15 @@
 package com.cognizant.icecream.services;
 
-import com.cognizant.icecream.pools.PoolCapacityException;
-import com.cognizant.icecream.pools.api.ServiceResultPool;
-import com.cognizant.icecream.result.MutableServiceResult;
-import com.cognizant.icecream.result.ResultFactory;
 import com.cognizant.icecream.clients.GarageCRUD;
 import com.cognizant.icecream.clients.SupplyClient;
 import com.cognizant.icecream.clients.TimeClient;
 import com.cognizant.icecream.models.Garage;
 import com.cognizant.icecream.models.TimeSlot;
+import com.cognizant.icecream.pools.api.ResultPool;
+import com.cognizant.icecream.pools.api.ServiceResultPool;
+import com.cognizant.icecream.result.MutableServiceResult;
 import com.cognizant.icecream.result.Result;
+import com.cognizant.icecream.result.ResultFactory;
 import com.cognizant.icecream.result.ServiceResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,7 +31,8 @@ public class GarageService {
     private GarageCRUD garageCRUD;
     private SupplyClient supplyClient;
     private TimeClient timeClient;
-    private ServiceResultPool<Garage> resultPool;
+    private ServiceResultPool<Garage> serviceResultPool;
+    private ResultPool resultPool;
 
     static {
         FUTURE = ResultFactory.createResult(false, "Resupply must be SCHEDULED for a FUTURE time slot.");
@@ -41,10 +42,17 @@ public class GarageService {
     }
 
     @Autowired
-    public GarageService(GarageCRUD garageCRUD, SupplyClient supplyClient, TimeClient timeClient, ServiceResultPool<Garage> resultPool) {
+    public GarageService(
+            GarageCRUD garageCRUD,
+            SupplyClient supplyClient,
+            TimeClient timeClient,
+            ServiceResultPool<Garage> serviceResultPool,
+            ResultPool resultPool
+    ) {
         this.garageCRUD = garageCRUD;
         this.supplyClient = supplyClient;
         this.timeClient = timeClient;
+        this.serviceResultPool = serviceResultPool;
         this.resultPool = resultPool;
     }
 
@@ -57,7 +65,7 @@ public class GarageService {
         if(!garageCRUD.findByCode(garageCode).isPresent()) {
 
             String errMsg = String.format(NOT_FOUND, garageCode);
-            return ResultFactory.createResult(false, errMsg);
+            return ServicesUtil.createResult(false, errMsg, resultPool);
         }
 
         boolean success = supplyClient.scheduleResupply(garageCode, timeSlot);
@@ -94,7 +102,7 @@ public class GarageService {
             return REMOVED;
         }
         else {
-            return ResultFactory.createResult(false, "Could not remove Garage: " + garageCode);
+            return ServicesUtil.createResult(false, "Could not remove Garage: " + garageCode, resultPool);
         }
     }
 
@@ -106,20 +114,19 @@ public class GarageService {
     ) {
         MutableServiceResult<Garage> result = processOptional(optional, formatErrStr, formatArg);
         T processed = resultProcessor.apply(result);
-        resultPool.returnObject(result);
+        serviceResultPool.returnObject(result);
 
         return processed;
     }
 
-
     private MutableServiceResult processOptional(Optional<Garage> optional, String formatErrStr, String formatArg) {
 
         if(optional.isPresent()) {
-            return ServicesUtil.createResult(true, null, optional.get(), resultPool);
+            return ServicesUtil.createResult(true, null, optional.get(), serviceResultPool);
         }
         else {
             String errMsg = String.format(formatErrStr, formatArg);
-            return ServicesUtil.createResult(false, errMsg, null, resultPool);
+            return ServicesUtil.createResult(false, errMsg, null, serviceResultPool);
         }
     }
 }

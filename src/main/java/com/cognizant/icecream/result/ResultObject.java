@@ -2,24 +2,29 @@ package com.cognizant.icecream.result;
 
 import java.util.Objects;
 
-class ResultObject implements Result {
+class ResultObject implements MutableResult {
 
     private boolean success;
     private String message;
 
-    public ResultObject() {}
-
-    public ResultObject(boolean success, String message) {
-
-        this.success = success;
-        this.message = message;
-    }
-
+    @Override
     public boolean isSuccess() {
         return success;
     }
+
+    @Override
     public String getMessage() {
         return message;
+    }
+
+    @Override
+    public void setSuccess(boolean success) {
+        this.success = success;
+    }
+
+    @Override
+    public void setMessage(String message) {
+        this.message = message;
     }
 
     @Override

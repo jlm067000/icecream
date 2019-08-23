@@ -1,23 +1,22 @@
 package com.cognizant.icecream.pools.eviction;
 
-import com.cognizant.icecream.models.Garage;
-import com.cognizant.icecream.result.MutableServiceResult;
+import com.cognizant.icecream.result.MutableResult;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class GarageServiceResultEvictionPolicyTest extends EvictionPolicyTest<MutableServiceResult<Garage>> {
+public class ResultEvictionPolicyTest extends EvictionPolicyTest<MutableResult> {
 
-    private GarageServiceResultEvictionPolicy policy;
+    private ResultEvictionPolicy policy;
 
     @Before
     public void setup() {
 
         super.setup();
 
-        policy = new GarageServiceResultEvictionPolicy(MAX_UNACCESSED_TIME);
+        policy = new ResultEvictionPolicy(MAX_UNACCESSED_TIME);
     }
 
     @Test

@@ -6,6 +6,7 @@ import com.cognizant.icecream.clients.TimeClient;
 import com.cognizant.icecream.mock.MockFactory;
 import com.cognizant.icecream.models.Garage;
 import com.cognizant.icecream.models.TimeSlot;
+import com.cognizant.icecream.pools.api.ResultPool;
 import com.cognizant.icecream.pools.api.ServiceResultPool;
 import com.cognizant.icecream.result.Result;
 import com.cognizant.icecream.result.ServiceResult;
@@ -41,7 +42,8 @@ public class GarageServiceTest {
     private GarageCRUD garageCRUD;
     private SupplyClient supplyClient;
     private TimeClient timeClient;
-    private ServiceResultPool<Garage> resultPool;
+    private ServiceResultPool<Garage> serviceResultPool;
+    private ResultPool resultPool;
 
     @BeforeClass
     public static void init() {
@@ -61,7 +63,8 @@ public class GarageServiceTest {
     public void setup() {
 
         garageCRUD = MockFactory.createGarageCRUD(persisted, newGarage);
-        resultPool = MockFactory.createServiceResultPool();
+        serviceResultPool = MockFactory.createServiceResultPool();
+        resultPool = MockFactory.createResultPool();
 
         supplyClient = Mockito.mock(SupplyClient.class);
         when(supplyClient.scheduleResupply(any(), any())).thenReturn(true);
@@ -71,7 +74,7 @@ public class GarageServiceTest {
         when(timeClient.isValid(futureTime)).thenReturn(true);
         when(timeClient.isValid(pastTime)).thenReturn(false);
 
-        garageService = new GarageService(garageCRUD, supplyClient, timeClient, resultPool);
+        garageService = new GarageService(garageCRUD, supplyClient, timeClient, serviceResultPool, resultPool);
     }
 
     @Test
@@ -89,7 +92,7 @@ public class GarageServiceTest {
     }
 
     @Test
-    public void testGetGarage() throws Exception {
+    public void testGetGarage() {
 
         garageService.getGarage(PERSISTED_CODE, this::testGetValidGarage);
         verify(garageCRUD).findByCode(PERSISTED_CODE);
@@ -116,7 +119,7 @@ public class GarageServiceTest {
     }
 
     @Test
-    public void testAddGarage() throws Exception {
+    public void testAddGarage() {
 
         garageService.addGarage(newGarage, this::testAddNewGarage);
         verify(garageCRUD).add(newGarage);
@@ -142,7 +145,7 @@ public class GarageServiceTest {
     }
 
     @Test
-    public void testUpdateGarage() throws Exception {
+    public void testUpdateGarage() {
 
         Garage current = new Garage();
         current.setCode(PERSISTED_CODE);

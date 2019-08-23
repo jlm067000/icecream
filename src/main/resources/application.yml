@@ -16,3 +16,6 @@ objectPools:
   serviceResult:
     maxUnaccessedTime: 300000
     maxSize: 1000
+  result:
+    maxUnaccessedTime: 300000
+    maxSize: 1000

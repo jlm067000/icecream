@@ -4,7 +4,22 @@ public class ResultFactory {
 
     public static Result createResult(boolean success, String message) {
 
-        return new ResultObject(success, message);
+        return createMutableResult(success, message);
+    }
+
+    public static MutableResult createMutableResult() {
+
+        return new ResultObject();
+    }
+
+    public static MutableResult createMutableResult(boolean success, String message) {
+
+        MutableResult result = new ResultObject();
+
+        result.setSuccess(success);
+        result.setMessage(message);
+
+        return result;
     }
 
     public static <T> ServiceResult<T> createServiceResult(boolean success, String message, T payload) {

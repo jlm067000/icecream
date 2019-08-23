@@ -1,6 +1,8 @@
 package com.cognizant.icecream.mock;
 
+import com.cognizant.icecream.pools.api.ResultPool;
 import com.cognizant.icecream.pools.api.ServiceResultPool;
+import com.cognizant.icecream.result.MutableResult;
 import com.cognizant.icecream.result.MutableServiceResult;
 import com.cognizant.icecream.result.ResultFactory;
 import org.mockito.Mockito;
@@ -10,28 +12,25 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.when;
 
-public class ServiceResultPoolFactory {
+public class ResultPoolFactory {
 
-    public static <T> ServiceResultPool<T> createServiceResultPool() {
+    public static ResultPool createResultPool() {
 
-        ServiceResultPool<T> resultPool = Mockito.mock(ServiceResultPool.class);
+        ResultPool resultPool = Mockito.mock(ResultPool.class);
 
         try {
-            when(resultPool.createResult(anyBoolean(), any(), any())).then(ServiceResultPoolFactory::mockCreateServiceResult);
+            when(resultPool.createResult(anyBoolean(), any())).then(ResultPoolFactory::mockCreateResult);
         }
         catch(Exception ex) {}
-
 
         return resultPool;
     }
 
-    private static <T> MutableServiceResult<T> mockCreateServiceResult(InvocationOnMock iom) {
+    private static MutableResult mockCreateResult(InvocationOnMock iom) {
 
         boolean success = iom.getArgument(0);
         String message = iom.getArgument(1);
-        T payload = iom.getArgument(2);
 
-        return ResultFactory.createMutableServiceResult(success, message, payload);
+        return ResultFactory.createMutableResult(success, message);
     }
-
 }
