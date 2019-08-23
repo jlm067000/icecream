@@ -1,10 +1,13 @@
 package com.cognizant.icecream.services;
 
 import com.cognizant.icecream.clients.GarageCRUD;
+import com.cognizant.icecream.mock.MockFactory;
+import com.cognizant.icecream.pools.api.ResultPool;
 import com.cognizant.icecream.result.Result;
 import com.cognizant.icecream.clients.TruckCRUD;
 import com.cognizant.icecream.clients.TruckPurchasingClient;
 import com.cognizant.icecream.models.Truck;
+import com.cognizant.icecream.result.ServiceResult;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -20,98 +23,159 @@ import static org.mockito.Mockito.when;
 
 public class TruckServiceTest {
 
-    private static final String VIN12 = "12";
-    private static final String INVALID_VIN = "11";
+    private static final String PERSISTED_VIN = "12";
+    private static final String UNPERSISTED_VIN = "11";
 
-    private static Truck alcoholic12;
-    private static Truck nonalcoholic12;
+    private static Truck alcoholic;
+    private static Truck nonalcoholic;
     private static Truck unpersisted;
+    private static Truck invalid;
+
+    private static Object dontcare;
 
     private GarageCRUD garageCRUD;
     private TruckCRUD truckCRUD;
     private TruckPurchasingClient purchasingClient;
+    private ResultPool resultPool;
 
     private TruckService truckService;
 
     @BeforeClass
     public static void init() {
 
-        alcoholic12 = generateTruck(VIN12, true);
-        nonalcoholic12 = generateTruck(VIN12, false);
-        unpersisted = generateTruck(INVALID_VIN, true);
+        alcoholic = generateTruck(PERSISTED_VIN, true);
+        nonalcoholic = generateTruck(PERSISTED_VIN, false);
+        unpersisted = generateTruck(UNPERSISTED_VIN, true);
+        invalid = new Truck();
+        dontcare = new Object();
     }
 
     @Before
     public void setup() {
 
         garageCRUD = Mockito.mock(GarageCRUD.class);
-        truckCRUD = Mockito.mock(TruckCRUD.class);
+        truckCRUD = MockFactory.createTruckCRUD(alcoholic, nonalcoholic, unpersisted);
         purchasingClient = Mockito.mock(TruckPurchasingClient.class);
+        resultPool = MockFactory.createResultPool();
 
-        when(truckCRUD.findByVIN(VIN12)).thenReturn(Optional.of(alcoholic12));
+        when(truckCRUD.findByVIN(PERSISTED_VIN)).thenReturn(Optional.of(alcoholic));
 
         Answer<Optional<Truck>> truckAnswer = iom -> Optional.of(iom.getArgument(0));
 
         when(truckCRUD.add(any())).then(truckAnswer);
-        when(truckCRUD.update(nonalcoholic12)).thenReturn(Optional.of(nonalcoholic12));
+        when(truckCRUD.update(nonalcoholic)).thenReturn(Optional.of(nonalcoholic));
         when(truckCRUD.update(unpersisted)).thenReturn(Optional.empty());
-        when(truckCRUD.remove(VIN12)).thenReturn(true);
-        when(truckCRUD.remove(INVALID_VIN)).thenReturn(false);
+        when(truckCRUD.remove(PERSISTED_VIN)).thenReturn(true);
+        when(truckCRUD.remove(UNPERSISTED_VIN)).thenReturn(false);
 
-        truckService = new TruckService(garageCRUD, truckCRUD, purchasingClient);
+        truckService = new TruckService(garageCRUD, truckCRUD, purchasingClient, resultPool);
     }
 
     @Test
     public void testGetTruck() {
 
-        Truck truck = truckService.getTruck(VIN12);
+        truckService.getTruck(PERSISTED_VIN, this::testGetPersisted);
+        truckService.getTruck(UNPERSISTED_VIN, this::testGetUnpersisted);
+    }
 
-        assertNotNull(truck);
-        assertEquals(truck.getVin(), VIN12);
-        verify(truckCRUD).findByVIN(VIN12);
+    private Object testGetPersisted(ServiceResult<Truck> result) {
 
-        truck = truckService.getTruck(INVALID_VIN);
+        assertNotNull(result);
+        assertTrue(result.isSuccess());
+
+        Truck truck = result.getPayload();
+
+        assertEquals(truck.getVin(), PERSISTED_VIN);
+        verify(truckCRUD).findByVIN(PERSISTED_VIN);
+
+        return dontcare;
+    }
+
+    private Object testGetUnpersisted(ServiceResult<Truck> result) {
+
+        assertNotNull(result);
+        assertFalse(result.isSuccess());
+
+        Truck truck = result.getPayload();
 
         assertNull(truck);
-        verify(truckCRUD).findByVIN(INVALID_VIN);
+        verify(truckCRUD).findByVIN(UNPERSISTED_VIN);
+
+        return dontcare;
     }
 
     @Test
     public void testAddTruck() {
 
-        Truck newTruck = new Truck();
-        Truck added = truckService.addTruck(newTruck);
+        truckService.addTruck(unpersisted, this::testAddUnpersisted);
+        truckService.addTruck(invalid, this::testAddInvalid);
+    }
 
-        assertEquals(added, newTruck);
-        verify(truckCRUD).add(newTruck);
+    private Object testAddUnpersisted(ServiceResult<Truck> result) {
+
+        assertNotNull(result);
+        assertTrue(result.isSuccess());
+
+        Truck added = result.getPayload();
+
+        assertEquals(added, unpersisted);
+        verify(truckCRUD).add(unpersisted);
+
+        return dontcare;
+    }
+
+    private Object testAddInvalid(ServiceResult<Truck> result) {
+
+        assertNotNull(result);
+        assertFalse(result.isSuccess());
+        assertNull(result.getPayload());
+        verify(truckCRUD).add(invalid);
+
+        return dontcare;
     }
 
     @Test
     public void testUpdateTruck() {
 
-        Truck updated = truckService.updateTruck(nonalcoholic12);
+        truckService.updateTruck(nonalcoholic, this::testUpdateNonalchoholic);
+        truckService.updateTruck(unpersisted, this::testUpdateUnpersisted);
+    }
 
-        assertEquals(updated, nonalcoholic12);
-        verify(truckCRUD).update(nonalcoholic12);
+    private Object testUpdateNonalchoholic(ServiceResult<Truck> result) {
 
-        updated = truckService.updateTruck(unpersisted);
+        assertNotNull(result);
+        assertTrue(result.isSuccess());
 
-        assertNull(updated);
+        Truck updated = result.getPayload();
+
+        assertEquals(updated, nonalcoholic);
+        verify(truckCRUD).update(nonalcoholic);
+
+        return dontcare;
+    }
+
+    private Object testUpdateUnpersisted(ServiceResult<Truck> result) {
+
+        assertNotNull(result);
+        assertFalse(result.isSuccess());
+        assertNull(result.getPayload());
         verify(truckCRUD).update(unpersisted);
+
+        return dontcare;
     }
 
     @Test
     public void testRemoveTruck() {
 
-        Result result = truckService.removeTruck(VIN12);
+        Result result = truckService.removeTruck(PERSISTED_VIN);
 
         assertTrue(result.isSuccess());
-        verify(truckCRUD).remove(VIN12);
+        verify(truckCRUD).remove(PERSISTED_VIN);
 
-        result = truckService.removeTruck(INVALID_VIN);
+        result = truckService.removeTruck(UNPERSISTED_VIN);
 
         assertFalse(result.isSuccess());
-        verify(truckCRUD).remove(INVALID_VIN);
+        verify(truckCRUD).remove(UNPERSISTED_VIN);
     }
 
     private static Truck generateTruck(String VIN, boolean alcoholic) {
