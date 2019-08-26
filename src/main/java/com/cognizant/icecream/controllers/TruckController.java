@@ -2,6 +2,7 @@ package com.cognizant.icecream.controllers;
 
 import com.cognizant.icecream.models.*;
 import com.cognizant.icecream.result.Result;
+import com.cognizant.icecream.result.ServiceResultProcessor;
 import com.cognizant.icecream.services.TruckService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,8 @@ import java.util.Objects;
 import java.util.Set;
 
 import static com.cognizant.icecream.controllers.ControllerUtil.processResult;
+import static com.cognizant.icecream.controllers.ResultProcessorFactory.defaultRetrievalResultProcessor;
+import static com.cognizant.icecream.controllers.ResultProcessorFactory.getDefaultCreationResultProcessor;
 
 @RestController
 @RequestMapping("icecream/truck")
@@ -28,17 +31,18 @@ public class TruckController {
     }
 
     @GetMapping("{vin}")
-    public ResponseEntity<Truck> getTruck(@PathVariable("vin") String vin) {
+    public ResponseEntity<?> getTruck(@PathVariable("vin") String vin) {
 
-        Truck truck = service.getTruck(vin);
-        return new ResponseEntity<>(truck, HttpStatus.OK);
+        ServiceResultProcessor<Truck, ResponseEntity<?>> processor = defaultRetrievalResultProcessor();
+
+        return service.getTruck(vin, processor);
     }
 
     @PostMapping
-    public ResponseEntity<Truck> addTruck(@Valid @RequestBody Truck truck) {
+    public ResponseEntity<?> addTruck(@Valid @RequestBody Truck truck) {
 
-        truck = service.addTruck(truck);
-        return new ResponseEntity<>(truck, HttpStatus.CREATED);
+        ServiceResultProcessor<Truck, ResponseEntity<?>> processor = getDefaultCreationResultProcessor();
+        return service.addTruck(truck, processor);
     }
 
     @PutMapping("{vin}")

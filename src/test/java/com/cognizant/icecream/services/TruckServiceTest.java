@@ -3,6 +3,7 @@ package com.cognizant.icecream.services;
 import com.cognizant.icecream.clients.GarageCRUD;
 import com.cognizant.icecream.mock.MockFactory;
 import com.cognizant.icecream.pools.api.ResultPool;
+import com.cognizant.icecream.pools.api.ServiceResultPool;
 import com.cognizant.icecream.result.Result;
 import com.cognizant.icecream.clients.TruckCRUD;
 import com.cognizant.icecream.clients.TruckPurchasingClient;
@@ -37,6 +38,7 @@ public class TruckServiceTest {
     private TruckCRUD truckCRUD;
     private TruckPurchasingClient purchasingClient;
     private ResultPool resultPool;
+    private ServiceResultPool<Truck> serviceResultPool;
 
     private TruckService truckService;
 
@@ -57,6 +59,7 @@ public class TruckServiceTest {
         truckCRUD = MockFactory.createTruckCRUD(alcoholic, nonalcoholic, unpersisted);
         purchasingClient = Mockito.mock(TruckPurchasingClient.class);
         resultPool = MockFactory.createResultPool();
+        serviceResultPool = MockFactory.createServiceResultPool();
 
         when(truckCRUD.findByVIN(PERSISTED_VIN)).thenReturn(Optional.of(alcoholic));
 
@@ -68,7 +71,7 @@ public class TruckServiceTest {
         when(truckCRUD.remove(PERSISTED_VIN)).thenReturn(true);
         when(truckCRUD.remove(UNPERSISTED_VIN)).thenReturn(false);
 
-        truckService = new TruckService(garageCRUD, truckCRUD, purchasingClient, resultPool);
+        truckService = new TruckService(garageCRUD, truckCRUD, purchasingClient, resultPool, serviceResultPool);
     }
 
     @Test

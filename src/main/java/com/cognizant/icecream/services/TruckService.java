@@ -1,19 +1,20 @@
 package com.cognizant.icecream.services;
 
-import com.cognizant.icecream.clients.*;
+import com.cognizant.icecream.clients.GarageCRUD;
+import com.cognizant.icecream.clients.TruckCRUD;
+import com.cognizant.icecream.clients.TruckPurchasingClient;
+import com.cognizant.icecream.models.*;
 import com.cognizant.icecream.pools.api.ResultPool;
 import com.cognizant.icecream.pools.api.ServiceResultPool;
-import com.cognizant.icecream.result.ResultFactory;
-import com.cognizant.icecream.models.*;
 import com.cognizant.icecream.result.Result;
-import com.cognizant.icecream.result.ServiceResult;
+import com.cognizant.icecream.result.ResultFactory;
+import com.cognizant.icecream.result.ServiceResultProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 
 @Service
 public class TruckService {
@@ -51,21 +52,23 @@ public class TruckService {
         this.serviceResultPool = serviceResultPool;
     }
 
-    public <T> T getTruck(String vin, Function<ServiceResult<Truck>, T> resultProcessor) {
+    public <T> T getTruck(String vin, ServiceResultProcessor<Truck, T> resultProcessor) {
 
         Optional<Truck> truck = truckCRUD.findByVIN(vin);
 
         return ServicesUtil.processOptional(truck, NOT_FOUND, vin, serviceResultPool, resultProcessor);
     }
 
-    public <T> T addTruck(Truck truck, Function<ServiceResult<Truck>, T> resultProcessor) {
+    public <T> T addTruck(Truck truck, ServiceResultProcessor<Truck, T> resultProcessor) {
 
-        return ServicesUtil.extractOptionally(truck, truckCRUD::add);
+        Optional<Truck> added = truckCRUD.add(truck);
+        return ServicesUtil.processOptional(added, COULD_NOT_ADD, truck.getVin(), serviceResultPool, resultProcessor);
     }
 
-    public <T> T updateTruck(Truck truck, Function<ServiceResult<Truck>, T> resultProcessor) {
+    public <T> T updateTruck(Truck truck, ServiceResultProcessor<Truck, T> resultProcessor) {
 
-        return ServicesUtil.extractOptionally(truck, truckCRUD::update);
+        Optional<Truck> updated = truckCRUD.update(truck);
+        return ServicesUtil.processOptional(updated, COULD_NOT_UPDATE, truck.getVin(), serviceResultPool, resultProcessor);
     }
 
     public Result removeTruck(String vin) {

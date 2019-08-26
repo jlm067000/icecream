@@ -39,12 +39,7 @@ public class GarageController {
     @PostMapping
     public ResponseEntity<?> addGarage(@Valid @RequestBody Garage garage) {
 
-        try{
-            return service.addGarage(garage, ControllerUtil::processResult);
-        }
-        catch(Exception ex) {
-            return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return service.addGarage(garage, ControllerUtil::processCreationResult);
     }
 
     @PutMapping("{code}")
