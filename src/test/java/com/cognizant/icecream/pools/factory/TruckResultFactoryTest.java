@@ -1,6 +1,6 @@
 package com.cognizant.icecream.pools.factory;
 
-import com.cognizant.icecream.models.Garage;
+import com.cognizant.icecream.models.Truck;
 import com.cognizant.icecream.result.MutableServiceResult;
 import org.apache.commons.pool2.PooledObject;
 import org.junit.BeforeClass;
@@ -8,19 +8,19 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertNotNull;
 
-public class GarageServiceResultFactoryTest {
+public class TruckServiceResultFactoryTest {
 
-    private static GarageServiceResultFactory factory;
+    private static TruckResultFactory factory;
 
     @BeforeClass
     public static void init() {
-        factory = new GarageServiceResultFactory();
+        factory = new TruckResultFactory();
     }
 
     @Test
     public void testMakeObject() {
 
-        PooledObject<MutableServiceResult<Garage>> object = factory.makeObject();
+        PooledObject<MutableServiceResult<Truck>> object = factory.makeObject();
 
         assertNotNull(object);
         assertNotNull(object.getObject());

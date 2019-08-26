@@ -10,14 +10,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class TruckServiceResultObjectPool extends ServiceResultObjectPool<Truck> implements LocalObjectPool<MutableServiceResult<Truck>>  {
+public class TruckResultObjectPool extends ServiceResultObjectPool<Truck> implements LocalObjectPool<MutableServiceResult<Truck>>  {
 
     @Autowired
-    TruckServiceResultObjectPool(
+    TruckResultObjectPool(
             PooledObjectFactory<MutableServiceResult<Truck>> factory,
             GenericObjectPoolConfig<MutableServiceResult<Truck>> config,
             DefaultAbandonedConfig<MutableServiceResult<Truck>> abandonedConfig
     ) {
-        super(factory, config, abandonedConfig, TruckServiceResultObjectPool.class);
+        super(factory, config, abandonedConfig, TruckResultObjectPool.class);
     }
 }

@@ -10,14 +10,14 @@ import static org.junit.Assert.assertTrue;
 
 public class GarageServiceResultEvictionPolicyTest extends EvictionPolicyTest<MutableServiceResult<Garage>> {
 
-    private GarageServiceResultEvictionPolicy policy;
+    private GarageResultEvictionPolicy policy;
 
     @Before
     public void setup() {
 
         super.setup();
 
-        policy = new GarageServiceResultEvictionPolicy(MAX_UNACCESSED_TIME);
+        policy = new GarageResultEvictionPolicy(MAX_UNACCESSED_TIME);
     }
 
     @Test

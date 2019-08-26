@@ -1,6 +1,6 @@
 package com.cognizant.icecream.pools;
 
-import com.cognizant.icecream.models.Truck;
+import com.cognizant.icecream.models.Garage;
 import com.cognizant.icecream.result.MutableServiceResult;
 import com.cognizant.icecream.result.ResultFactory;
 import org.junit.Before;
@@ -9,24 +9,24 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-public class TruckServiceResultObjectPoolTest extends PoolTest<MutableServiceResult<Truck>> {
+public class GarageServiceResultObjectPoolTest extends PoolTest<MutableServiceResult<Garage>> {
 
     private static final String MESSAGE = "";
-    private static final Truck PAYLOAD = new Truck();
+    private static final Garage PAYLOAD = new Garage();
 
-    private TruckServiceResultObjectPool pool;
+    private GarageResultObjectPool pool;
 
     @Before
     public void setup() {
 
         super.setup(ResultFactory.createMutableServiceResult());
-        pool = new TruckServiceResultObjectPool(factory, config, abandonedConfig);
+        pool = new GarageResultObjectPool(factory, config, abandonedConfig);
     }
 
     @Test(expected = PoolCapacityException.class)
     public void testCreateBeyondCapacity() throws Exception {
 
-        MutableServiceResult<Truck> result = pool.createResult(true, MESSAGE, PAYLOAD);
+        MutableServiceResult<Garage> result = pool.createResult(true, MESSAGE, PAYLOAD);
 
         assertNotNull(result);
         assertEquals(true, result.isSuccess());
@@ -39,7 +39,7 @@ public class TruckServiceResultObjectPoolTest extends PoolTest<MutableServiceRes
     @Test
     public void testReuseObject() throws Exception {
 
-        MutableServiceResult<Truck> result = pool.createResult(true, MESSAGE, PAYLOAD);
+        MutableServiceResult<Garage> result = pool.createResult(true, MESSAGE, PAYLOAD);
 
         assertNotNull(result);
         assertEquals(true, result.isSuccess());
@@ -53,5 +53,4 @@ public class TruckServiceResultObjectPoolTest extends PoolTest<MutableServiceRes
         assertEquals(MESSAGE, result.getMessage());
         assertEquals(PAYLOAD, result.getPayload());
     }
-
 }
