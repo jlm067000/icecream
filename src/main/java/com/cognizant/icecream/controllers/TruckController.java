@@ -2,7 +2,6 @@ package com.cognizant.icecream.controllers;
 
 import com.cognizant.icecream.models.*;
 import com.cognizant.icecream.result.Result;
-import com.cognizant.icecream.result.ServiceResultProcessor;
 import com.cognizant.icecream.services.TruckService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,10 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.Objects;
 import java.util.Set;
-
-import static com.cognizant.icecream.controllers.ControllerUtil.processResult;
-import static com.cognizant.icecream.controllers.ResultProcessorFactory.defaultRetrievalResultProcessor;
-import static com.cognizant.icecream.controllers.ResultProcessorFactory.getDefaultCreationResultProcessor;
 
 @RestController
 @RequestMapping("icecream/truck")
@@ -33,16 +28,13 @@ public class TruckController {
     @GetMapping("{vin}")
     public ResponseEntity<?> getTruck(@PathVariable("vin") String vin) {
 
-        ServiceResultProcessor<Truck, ResponseEntity<?>> processor = defaultRetrievalResultProcessor();
-
-        return service.getTruck(vin, processor);
+        return service.getTruck(vin, ResultProcessorFactory.GET_PROCESSOR);
     }
 
     @PostMapping
     public ResponseEntity<?> addTruck(@Valid @RequestBody Truck truck) {
 
-        ServiceResultProcessor<Truck, ResponseEntity<?>> processor = getDefaultCreationResultProcessor();
-        return service.addTruck(truck, processor);
+        return service.addTruck(truck, ResultProcessorFactory.GET_PROCESSOR);
     }
 
     @PutMapping("{vin}")
@@ -54,21 +46,13 @@ public class TruckController {
             return mismatchResponse;
         }
 
-        truck = service.updateTruck(truck);
-        return new ResponseEntity<>(truck, HttpStatus.OK);
+        return service.updateTruck(truck, ResultProcessorFactory.SERVICE_RESULT_PROCESSOR);
     }
 
     @DeleteMapping("{vin}")
     public ResponseEntity<?> removeTruck(@PathVariable("vin") String vin) {
 
-        Result result = service.removeTruck(vin);
-
-        if(result.isSuccess()) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        else {
-            return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return service.removeTruck(vin, ResultProcessorFactory.REMOVE_PROCESSOR);
     }
 
     @GetMapping
@@ -121,17 +105,17 @@ public class TruckController {
     }
 
     @PostMapping("deploy")
-    public ResponseEntity<Result> deploy(@Valid @RequestBody TruckGarage truckGarage) {
+    public ResponseEntity<?> deploy(@Valid @RequestBody TruckGarage truckGarage) {
 
         Result result = service.deploy(truckGarage);
-        return processResult(result);
+        return ResultProcessorFactory.DEFAULT_PROCESSOR.apply(result);
     }
 
     @PostMapping("patrol")
     public ResponseEntity<Result> patrolAlcoholic(@RequestParam boolean alcoholic, @RequestBody Neighborhood neighborhood) {
 
         Result result = service.patrol(alcoholic, neighborhood);
-        return processResult(result);
+        return ResultProcessorFactory.DEFAULT_PROCESSOR.apply(result);
     }
 
     private static ResponseEntity<String> checkPathVariableMismatch(String pathVariable, Truck truck, String errorMsg)

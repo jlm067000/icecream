@@ -1,3 +1,5 @@
 package com.cognizant.icecream.result;
 
-public interface ServiceResultProcessor<T, U>  extends ResultProcessor<ServiceResult<T>, U> {}
+import java.util.function.Function;
+
+public interface ServiceResultProcessor<T>  extends Function<ServiceResult, T> {}

@@ -8,6 +8,7 @@ import com.cognizant.icecream.pools.api.ResultPool;
 import com.cognizant.icecream.pools.api.ServiceResultPool;
 import com.cognizant.icecream.result.Result;
 import com.cognizant.icecream.result.ResultFactory;
+import com.cognizant.icecream.result.ResultProcessor;
 import com.cognizant.icecream.result.ServiceResultProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,12 +20,12 @@ import java.util.Set;
 @Service
 public class TruckService {
 
-    private static final String VERIFY_ADD = "Verify that it was added and not removed.";
+    private static final String VERIFY_ADD = "Verify that it was added and not REMOVED.";
     private static final String NOT_FOUND = "Could not find truck of VIN %s. " + VERIFY_ADD;
     private static final String COULD_NOT_ADD = "Could not add truck of VIN %s.";
     private static final String COULD_NOT_UPDATE = "Could not update truck of VIN %s. " + VERIFY_ADD;
 
-    private static final Result removed;
+    private static final Result REMOVED;
 
     private GarageCRUD garageCRUD;
     private TruckCRUD truckCRUD;
@@ -33,7 +34,7 @@ public class TruckService {
     private ServiceResultPool<Truck> serviceResultPool;
 
     static {
-        removed = ResultFactory.createResult(true, "removed");
+        REMOVED = ResultFactory.createResult(true, "REMOVED");
     }
 
     @Autowired
@@ -52,35 +53,36 @@ public class TruckService {
         this.serviceResultPool = serviceResultPool;
     }
 
-    public <T> T getTruck(String vin, ServiceResultProcessor<Truck, T> resultProcessor) {
+    public <T> T getTruck(String vin, ServiceResultProcessor<T> resultProcessor) {
 
         Optional<Truck> truck = truckCRUD.findByVIN(vin);
 
         return ServicesUtil.processOptional(truck, NOT_FOUND, vin, serviceResultPool, resultProcessor);
     }
 
-    public <T> T addTruck(Truck truck, ServiceResultProcessor<Truck, T> resultProcessor) {
+    public <T> T addTruck(Truck truck, ServiceResultProcessor<T> resultProcessor) {
 
         Optional<Truck> added = truckCRUD.add(truck);
         return ServicesUtil.processOptional(added, COULD_NOT_ADD, truck.getVin(), serviceResultPool, resultProcessor);
     }
 
-    public <T> T updateTruck(Truck truck, ServiceResultProcessor<Truck, T> resultProcessor) {
+    public <T> T updateTruck(Truck truck, ServiceResultProcessor<T> resultProcessor) {
 
         Optional<Truck> updated = truckCRUD.update(truck);
         return ServicesUtil.processOptional(updated, COULD_NOT_UPDATE, truck.getVin(), serviceResultPool, resultProcessor);
     }
 
-    public Result removeTruck(String vin) {
+    public <T> T removeTruck(String vin, ResultProcessor<T> resultProcessor) {
 
         boolean success = truckCRUD.remove(vin);
 
         if(success) {
-            return removed;
+            return resultProcessor.apply(REMOVED);
         }
-        else {
-            return ServicesUtil.createResult(false, "Could not remove Truck: " + vin, resultPool);
-        }
+
+        Result result = ServicesUtil.createResult(false, "Could not remove Truck: " + vin, resultPool);
+
+        return resultProcessor.apply(result);
     }
 
     public Invoice purchaseTrucks(String authorization, TruckPurchaseOrder order) {

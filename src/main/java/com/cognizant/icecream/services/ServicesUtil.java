@@ -1,24 +1,15 @@
 package com.cognizant.icecream.services;
 
-import com.cognizant.icecream.models.Garage;
 import com.cognizant.icecream.pools.api.ResultPool;
 import com.cognizant.icecream.pools.api.ServiceResultPool;
 import com.cognizant.icecream.result.MutableResult;
 import com.cognizant.icecream.result.MutableServiceResult;
 import com.cognizant.icecream.result.ResultFactory;
-import com.cognizant.icecream.result.ServiceResult;
+import com.cognizant.icecream.result.ServiceResultProcessor;
 
 import java.util.Optional;
-import java.util.function.Function;
 
 class ServicesUtil {
-
-    static <T, U> T extractOptionally(U parameter, Function<U, Optional<T>> extractor) {
-
-        Optional<T> optional = extractor.apply(parameter);
-
-        return (optional.isPresent()) ? optional.get() : null;
-    }
 
     static <T> MutableServiceResult<T> createResult(boolean success, String message, T payload, ServiceResultPool<T> resultPool)
     {
@@ -45,7 +36,7 @@ class ServicesUtil {
             String formatErrStr,
             String formatArg,
             ServiceResultPool<U> resultPool,
-            Function<ServiceResult<U>, T> resultProcessor
+            ServiceResultProcessor<T> resultProcessor
     ) {
         MutableServiceResult<U> result = processOptional(optional, formatErrStr, formatArg, resultPool);
         T processed = resultProcessor.apply(result);

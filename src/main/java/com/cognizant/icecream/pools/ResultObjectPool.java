@@ -20,9 +20,8 @@ class ResultObjectPool extends Pool<MutableResult> implements ResultPool {
         super(factory, config, abandonedConfig, ResultObjectPool.class);
     }
 
-    public MutableResult createResult(boolean success, String message)
-            throws PoolCapacityException, Exception
-    {
+    public MutableResult createResult(boolean success, String message) throws PoolCapacityException, Exception {
+
         MutableResult result = getObject();
 
         result.setSuccess(success);

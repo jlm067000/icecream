@@ -10,6 +10,7 @@ import com.cognizant.icecream.pools.api.ResultPool;
 import com.cognizant.icecream.pools.api.ServiceResultPool;
 import com.cognizant.icecream.result.Result;
 import com.cognizant.icecream.result.ServiceResult;
+import com.cognizant.icecream.result.ServiceResultProcessor;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -149,7 +150,7 @@ public class GarageServiceTest {
 
         Garage current = new Garage();
         current.setCode(PERSISTED_CODE);
-        Function<ServiceResult, Object> resultProcessor = r -> testUpdateCurrentGarage(r, current);
+        ServiceResultProcessor<Object> resultProcessor = r -> testUpdateCurrentGarage(r, current);
 
         garageService.updateGarage(current, resultProcessor);
         verify(garageCRUD).update(current);
@@ -177,15 +178,24 @@ public class GarageServiceTest {
     @Test
     public void testRemoveGarage() {
 
-        Result result = garageService.removeGarage(PERSISTED_CODE);
+        garageService.removeGarage(PERSISTED_CODE, this::testRemovePersisted);
+        garageService.removeGarage(UNPERSISTED_CODE, this::testRemoveUnpersisted);
+    }
+
+    private Object testRemovePersisted(Result result) {
 
         assertTrue(result.isSuccess());
         verify(garageCRUD).remove(PERSISTED_CODE);
 
-        result = garageService.removeGarage(UNPERSISTED_CODE);
+        return dontcare;
+    }
+
+    private Object testRemoveUnpersisted(Result result) {
 
         assertFalse(result.isSuccess());
         verify(garageCRUD).remove(UNPERSISTED_CODE);
+
+        return dontcare;
     }
 
     private static TimeSlot getTimeSlot(int dayOffset) {

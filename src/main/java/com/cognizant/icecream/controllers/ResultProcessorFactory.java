@@ -9,52 +9,30 @@ import org.springframework.http.ResponseEntity;
 
 public class ResultProcessorFactory {
 
-    static final ResultProcessor<Result, ResponseEntity<?>> DEFAULT_RESULT_PROCESSOR;
+    static final ResultProcessor<ResponseEntity<Result>> DEFAULT_PROCESSOR;
+    static final ResultProcessor<ResponseEntity<Result>> REMOVE_PROCESSOR;
+    static final ServiceResultProcessor<ResponseEntity<?>> GET_PROCESSOR;
+    static final ServiceResultProcessor<ResponseEntity<?>> ADD_PROCESSOR;
+    static final ServiceResultProcessor<ResponseEntity<?>> SERVICE_RESULT_PROCESSOR;
 
     static {
-        DEFAULT_RESULT_PROCESSOR = ResultProcessorFactory::processResult;
+        DEFAULT_PROCESSOR = ResultProcessorFactory::processResult;
+        REMOVE_PROCESSOR = r -> processResult(r, HttpStatus.OK, HttpStatus.NO_CONTENT);
+        GET_PROCESSOR = r -> processServiceResult(r, HttpStatus.OK, HttpStatus.NOT_FOUND);
+        ADD_PROCESSOR = r -> processServiceResult(r, HttpStatus.CREATED, HttpStatus.OK);
+        SERVICE_RESULT_PROCESSOR = r -> processServiceResult(r, HttpStatus.OK, HttpStatus.BAD_REQUEST);
     }
 
-    static ResultProcessor<Result, ResponseEntity<?>> defaultResultProcessor() {
+    static ResultProcessor<ResponseEntity<?>> createResultProcessor(HttpStatus successCode, HttpStatus failCode) {
 
-        return ResultProcessorFactory::processResult;
-    }
-
-    static ResultProcessor<Result, ResponseEntity<?>> createResultProcessor(HttpStatus successCode, HttpStatus failCode) {
-
-        ResultProcessor<Result, ResponseEntity<?>> processor = r -> processResult(r, successCode, failCode);
+        ResultProcessor<ResponseEntity<?>> processor = r -> processResult(r, successCode, failCode);
         return processor;
     }
 
-    static <T> ServiceResultProcessor<T, ResponseEntity<?>> createServiceResultProcessor() {
-
-        return ResultProcessorFactory::processServiceResult;
-    }
-
-    static <T> ServiceResultProcessor<T, ResponseEntity<?>> createServiceResultProcessor(HttpStatus successCode,  HttpStatus failCode)
+    static ServiceResultProcessor<ResponseEntity<?>> createServiceResultProcessor(HttpStatus successCode,  HttpStatus failCode)
     {
-        ServiceResultProcessor<T, ResponseEntity<?>> processor = r -> processServiceResult(r, successCode, failCode);
-        return ResultProcessorFactory::processResult;
-    }
-
-    static <T> ServiceResultProcessor<T, ResponseEntity<?>> defaultRetrievalResultProcessor() {
-
-        return ResultProcessorFactory::processRetrievalResult;
-    }
-
-    private static <T> ResponseEntity<?> processRetrievalResult(ServiceResult<T> result) {
-
-        return processResult(result, HttpStatus.OK, HttpStatus.NOT_FOUND);
-    }
-
-    static <T> ServiceResultProcessor<T, ResponseEntity<?>> getDefaultCreationResultProcessor() {
-
-        return ResultProcessorFactory::processCreationResult;
-    }
-
-    private static <T> ResponseEntity<?> processCreationResult(ServiceResult<T> result) {
-
-        return processResult(result, HttpStatus.CREATED, HttpStatus.OK);
+        ServiceResultProcessor<ResponseEntity<?>> processor = r -> processServiceResult(r, successCode, failCode);
+        return processor;
     }
 
     private static ResponseEntity<Result> processResult(Result result) {
@@ -77,12 +55,7 @@ public class ResultProcessorFactory {
         }
     }
 
-    private static <T> ResponseEntity<?> processServiceResult(ServiceResult<T> result) {
-
-        return processServiceResult(result, HttpStatus.OK, HttpStatus.BAD_REQUEST);
-    }
-
-    private static <T> ResponseEntity<?> processServiceResult(ServiceResult<T> result, HttpStatus successCode, HttpStatus failCode) {
+    private static ResponseEntity<?> processServiceResult(ServiceResult result, HttpStatus successCode, HttpStatus failCode) {
 
         if(result.isSuccess()) {
             return new ResponseEntity<>(result.getPayload(), successCode);

@@ -7,10 +7,7 @@ import com.cognizant.icecream.models.Garage;
 import com.cognizant.icecream.models.TimeSlot;
 import com.cognizant.icecream.pools.api.ResultPool;
 import com.cognizant.icecream.pools.api.ServiceResultPool;
-import com.cognizant.icecream.result.MutableServiceResult;
-import com.cognizant.icecream.result.Result;
-import com.cognizant.icecream.result.ResultFactory;
-import com.cognizant.icecream.result.ServiceResult;
+import com.cognizant.icecream.result.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -73,37 +70,38 @@ public class GarageService {
         return success ? SCHEDULED : COULD_NOT_RESUPPLY;
     }
 
-    public <T> T getGarage(String garageCode, Function<ServiceResult, T> resultProcessor) {
+    public <T> T getGarage(String garageCode, ServiceResultProcessor<T> resultProcessor) {
 
         Optional<Garage> garage = garageCRUD.findByCode(garageCode);
 
         return processOptional(garage, NOT_FOUND, garageCode, resultProcessor);
     }
 
-    public <T> T addGarage(Garage garage, Function<ServiceResult, T> resultProcessor) {
+    public <T> T addGarage(Garage garage, ServiceResultProcessor<T> resultProcessor) {
 
         Optional<Garage> added = garageCRUD.add(garage);
 
         return processOptional(added, COULD_NOT_ADD, garage.getCode(), resultProcessor);
     }
 
-    public <T> T updateGarage(Garage garage, Function<ServiceResult, T> resultProcessor) {
+    public <T> T updateGarage(Garage garage, ServiceResultProcessor<T> resultProcessor) {
 
         Optional<Garage> updated = garageCRUD.update(garage);
 
         return processOptional(updated, COULD_NOT_UPDATE, garage.getCode(), resultProcessor);
     }
 
-    public Result removeGarage(String garageCode) {
+    public <T> T removeGarage(String garageCode, ResultProcessor<T> resultProcessor) {
 
         boolean success = garageCRUD.remove(garageCode);
 
         if(success) {
-            return REMOVED;
+            return resultProcessor.apply(REMOVED);
         }
-        else {
-            return ServicesUtil.createResult(false, "Could not remove Garage: " + garageCode, resultPool);
-        }
+
+        Result result = ServicesUtil.createResult(false, "Could not remove Garage: " + garageCode, resultPool);
+
+        return resultProcessor.apply(result);
     }
 
     private <T> T processOptional(
