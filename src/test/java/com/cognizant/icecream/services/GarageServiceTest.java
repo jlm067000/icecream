@@ -150,7 +150,7 @@ public class GarageServiceTest {
 
         Garage current = new Garage();
         current.setCode(PERSISTED_CODE);
-        ServiceResultProcessor<Object> resultProcessor = r -> testUpdateCurrentGarage(r, current);
+        ServiceResultProcessor<Garage, Object> resultProcessor = r -> testUpdateCurrentGarage(r, current);
 
         garageService.updateGarage(current, resultProcessor);
         verify(garageCRUD).update(current);

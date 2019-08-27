@@ -6,9 +6,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-class GarageServiceResultEvictionPolicy extends UnaccessedTimeEvictionPolicy<MutableServiceResult<Garage>> {
+class GarageResultEvictionPolicy extends UnaccessedTimeEvictionPolicy<MutableServiceResult<Garage>> {
 
-    GarageServiceResultEvictionPolicy(@Value("${objectPools.serviceResult.maxUnaccessedTime}") long maxUnaccessedTime) {
+    GarageResultEvictionPolicy(@Value("${objectPools.serviceResult.maxUnaccessedTime}") long maxUnaccessedTime) {
         super(maxUnaccessedTime);
     }
 }

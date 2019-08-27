@@ -8,7 +8,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class GarageServiceResultEvictionPolicyTest extends EvictionPolicyTest<MutableServiceResult<Garage>> {
+public class GarageResultEvictionPolicyTest extends EvictionPolicyTest<MutableServiceResult<Garage>> {
 
     private GarageResultEvictionPolicy policy;
 

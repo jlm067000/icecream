@@ -4,4 +4,4 @@ import com.cognizant.icecream.models.Truck;
 import org.springframework.stereotype.Component;
 
 @Component
-public class TruckServiceResultFactory extends ServiceResultFactory<Truck> {}
+public class TruckResultFactory extends ServiceResultFactory<Truck> {}

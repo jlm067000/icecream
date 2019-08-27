@@ -6,9 +6,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-class GarageServiceResultAbandonedConfig extends DefaultAbandonedConfig<MutableServiceResult<Garage>> {
+class GarageResultAbandonedConfig extends DefaultAbandonedConfig<MutableServiceResult<Garage>> {
 
-    GarageServiceResultAbandonedConfig(@Value("${objectPools.serviceResult.maxUnaccessedTime}") int maxUnaccessedTime) {
+    GarageResultAbandonedConfig(@Value("${objectPools.serviceResult.maxUnaccessedTime}") int maxUnaccessedTime) {
         super(maxUnaccessedTime);
     }
 }

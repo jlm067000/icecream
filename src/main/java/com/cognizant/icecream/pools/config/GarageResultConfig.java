@@ -8,10 +8,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-class GarageServiceResultConfig extends DefaultObjectPoolConfig<MutableServiceResult<Garage>> {
+class GarageResultConfig extends DefaultObjectPoolConfig<MutableServiceResult<Garage>> {
 
     @Autowired
-    GarageServiceResultConfig(
+    GarageResultConfig(
             EvictionPolicy<MutableServiceResult<Garage>> evictionPolicy,
             @Value("${objectPools.serviceResult.maxSize}") int maxSize
     ) {

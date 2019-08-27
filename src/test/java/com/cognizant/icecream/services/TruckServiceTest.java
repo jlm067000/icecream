@@ -14,6 +14,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.verify;
 
@@ -26,6 +29,7 @@ public class TruckServiceTest {
     private static Truck nonalcoholic;
     private static Truck unpersisted;
     private static Truck invalid;
+    private static Set<Truck> trucks;
 
     private static Object dontcare;
 
@@ -45,6 +49,10 @@ public class TruckServiceTest {
         unpersisted = generateTruck(UNPERSISTED_VIN, true);
         invalid = new Truck();
         dontcare = new Object();
+
+        trucks = new HashSet<>();
+        trucks.add(alcoholic);
+        trucks.add(nonalcoholic);
     }
 
     @Before
@@ -171,6 +179,29 @@ public class TruckServiceTest {
 
         assertFalse(result.isSuccess());
         verify(truckCRUD).remove(UNPERSISTED_VIN);
+
+        return dontcare;
+    }
+
+    @Test
+    public void testGetTrucks() {
+
+        truckService.getTrucks(this::testGetAllTrucks);
+    }
+
+    private Object testGetAllTrucks(ServiceResult<Set<Truck>> result) {
+
+        assertNotNull(result);
+        assertTrue(result.isSuccess());
+
+        Set<Truck> trucks = result.getPayload();
+
+        assertNotNull(trucks);
+        assertEquals(2, trucks.size());
+        assertTrue(trucks.contains(alcoholic));
+        assertTrue(trucks.contains(nonalcoholic));
+
+        verify(truckCRUD).findAll();
 
         return dontcare;
     }

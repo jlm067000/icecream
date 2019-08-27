@@ -2,6 +2,7 @@ package com.cognizant.icecream.controllers;
 
 import com.cognizant.icecream.models.*;
 import com.cognizant.icecream.result.Result;
+import com.cognizant.icecream.result.ServiceResultProcessor;
 import com.cognizant.icecream.services.TruckService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,6 +13,8 @@ import javax.validation.Valid;
 import java.util.Objects;
 import java.util.Set;
 
+import static com.cognizant.icecream.controllers.ResultProcessorFactory.createServiceResultProcessor;
+
 @RestController
 @RequestMapping("icecream/truck")
 public class TruckController {
@@ -19,22 +22,35 @@ public class TruckController {
     private static final String PATH_VARIABLE_MISMATCH = "The Request Body does not match path variable: vin";
 
     private TruckService service;
+    private ServiceResultProcessor<Truck, ResponseEntity<?>> retrievalProcessor;
+    private ServiceResultProcessor<Truck, ResponseEntity<?>> addProcessor;
+    private ServiceResultProcessor<Truck, ResponseEntity<?>> defaultProcessor;
+    private ServiceResultProcessor<Set<Truck>, ResponseEntity<?>> setRetrievalProcessor;
 
     @Autowired
     public TruckController(TruckService service) {
+
         this.service = service;
+        initialize();
+    }
+
+    private void initialize() {
+        retrievalProcessor = createServiceResultProcessor(HttpStatus.OK, HttpStatus.NOT_FOUND);
+        addProcessor = createServiceResultProcessor(HttpStatus.CREATED, HttpStatus.OK);
+        defaultProcessor = createServiceResultProcessor(HttpStatus.OK, HttpStatus.BAD_REQUEST);
+        setRetrievalProcessor = createServiceResultProcessor(HttpStatus.OK, HttpStatus.NOT_FOUND);
     }
 
     @GetMapping("{vin}")
     public ResponseEntity<?> getTruck(@PathVariable("vin") String vin) {
 
-        return service.getTruck(vin, ResultProcessorFactory.GET_PROCESSOR);
+        return service.getTruck(vin, retrievalProcessor);
     }
 
     @PostMapping
     public ResponseEntity<?> addTruck(@Valid @RequestBody Truck truck) {
 
-        return service.addTruck(truck, ResultProcessorFactory.GET_PROCESSOR);
+        return service.addTruck(truck, addProcessor);
     }
 
     @PutMapping("{vin}")
@@ -46,7 +62,7 @@ public class TruckController {
             return mismatchResponse;
         }
 
-        return service.updateTruck(truck, ResultProcessorFactory.SERVICE_RESULT_PROCESSOR);
+        return service.updateTruck(truck, defaultProcessor);
     }
 
     @DeleteMapping("{vin}")
@@ -56,10 +72,9 @@ public class TruckController {
     }
 
     @GetMapping
-    public ResponseEntity<Set<Truck>> getTrucks() {
+    public ResponseEntity<?> getTrucks() {
 
-        Set<Truck> trucks = service.getTrucks();
-        return new ResponseEntity<>(trucks, HttpStatus.OK);
+        return service.getTrucks(setRetrievalProcessor);
     }
 
     @GetMapping("garage/{code}")

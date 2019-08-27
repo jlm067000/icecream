@@ -36,7 +36,7 @@ class ServicesUtil {
             String formatErrStr,
             String formatArg,
             ServiceResultPool<U> resultPool,
-            ServiceResultProcessor<T> resultProcessor
+            ServiceResultProcessor<U, T> resultProcessor
     ) {
         MutableServiceResult<U> result = processOptional(optional, formatErrStr, formatArg, resultPool);
         T processed = resultProcessor.apply(result);

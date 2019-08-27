@@ -3,7 +3,7 @@ package com.cognizant.icecream.controllers;
 import com.cognizant.icecream.models.Garage;
 import com.cognizant.icecream.models.TimeSlot;
 import com.cognizant.icecream.result.Result;
-import com.cognizant.icecream.result.ServiceResult;
+import com.cognizant.icecream.result.ServiceResultProcessor;
 import com.cognizant.icecream.services.GarageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,22 +20,34 @@ public class GarageController {
     private static final String PATH_VARIABLE_MISMATCH = "The Request Body does not match path variable: code";
 
     private GarageService service;
+    private ServiceResultProcessor<Garage, ResponseEntity<?>> retrievalProcessor;
+    private ServiceResultProcessor<Garage, ResponseEntity<?>> addProcessor;
+    private ServiceResultProcessor<Garage, ResponseEntity<?>> defaultProcessor;
 
     @Autowired
     public GarageController(GarageService service) {
+
         this.service = service;
+        initializeResultProcessors();
+    }
+
+    private void initializeResultProcessors() {
+
+        retrievalProcessor = ResultProcessorFactory.createServiceResultProcessor(HttpStatus.OK, HttpStatus.NOT_FOUND);
+        addProcessor = ResultProcessorFactory.createServiceResultProcessor(HttpStatus.CREATED, HttpStatus.OK);
+        defaultProcessor = ResultProcessorFactory.createServiceResultProcessor(HttpStatus.OK, HttpStatus.BAD_REQUEST);
     }
 
     @GetMapping("{code}")
     public ResponseEntity<?> getGarage(@PathVariable("code") String code) {
 
-        return service.getGarage(code, ResultProcessorFactory.GET_PROCESSOR);
+        return service.getGarage(code, retrievalProcessor);
     }
 
     @PostMapping
     public ResponseEntity<?> addGarage(@Valid @RequestBody Garage garage) {
 
-        return service.addGarage(garage, ResultProcessorFactory.ADD_PROCESSOR);
+        return service.addGarage(garage, addProcessor);
     }
 
     @PutMapping("{code}")
@@ -47,7 +59,7 @@ public class GarageController {
             return mismatchResponse;
         }
 
-        return service.updateGarage(garage, ResultProcessorFactory.SERVICE_RESULT_PROCESSOR);
+        return service.updateGarage(garage, defaultProcessor);
     }
 
     @DeleteMapping("{code}")

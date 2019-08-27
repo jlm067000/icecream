@@ -7,12 +7,14 @@ import com.cognizant.icecream.models.Garage;
 import com.cognizant.icecream.models.TimeSlot;
 import com.cognizant.icecream.pools.api.ResultPool;
 import com.cognizant.icecream.pools.api.ServiceResultPool;
-import com.cognizant.icecream.result.*;
+import com.cognizant.icecream.result.Result;
+import com.cognizant.icecream.result.ResultFactory;
+import com.cognizant.icecream.result.ResultProcessor;
+import com.cognizant.icecream.result.ServiceResultProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
-import java.util.function.Function;
 
 @Service
 public class GarageService {
@@ -70,25 +72,25 @@ public class GarageService {
         return success ? SCHEDULED : COULD_NOT_RESUPPLY;
     }
 
-    public <T> T getGarage(String garageCode, ServiceResultProcessor<T> resultProcessor) {
+    public <T> T getGarage(String garageCode, ServiceResultProcessor<Garage, T> resultProcessor) {
 
         Optional<Garage> garage = garageCRUD.findByCode(garageCode);
 
-        return processOptional(garage, NOT_FOUND, garageCode, resultProcessor);
+        return ServicesUtil.processOptional(garage, NOT_FOUND, garageCode, serviceResultPool, resultProcessor);
     }
 
-    public <T> T addGarage(Garage garage, ServiceResultProcessor<T> resultProcessor) {
+    public <T> T addGarage(Garage garage, ServiceResultProcessor<Garage, T> resultProcessor) {
 
         Optional<Garage> added = garageCRUD.add(garage);
 
-        return processOptional(added, COULD_NOT_ADD, garage.getCode(), resultProcessor);
+        return ServicesUtil.processOptional(added, COULD_NOT_ADD, garage.getCode(), serviceResultPool, resultProcessor);
     }
 
-    public <T> T updateGarage(Garage garage, ServiceResultProcessor<T> resultProcessor) {
+    public <T> T updateGarage(Garage garage, ServiceResultProcessor<Garage, T> resultProcessor) {
 
         Optional<Garage> updated = garageCRUD.update(garage);
 
-        return processOptional(updated, COULD_NOT_UPDATE, garage.getCode(), resultProcessor);
+        return ServicesUtil.processOptional(updated, COULD_NOT_UPDATE, garage.getCode(), serviceResultPool, resultProcessor);
     }
 
     public <T> T removeGarage(String garageCode, ResultProcessor<T> resultProcessor) {
@@ -102,29 +104,5 @@ public class GarageService {
         Result result = ServicesUtil.createResult(false, "Could not remove Garage: " + garageCode, resultPool);
 
         return resultProcessor.apply(result);
-    }
-
-    private <T> T processOptional(
-                    Optional<Garage> optional,
-                    String formatErrStr,
-                    String formatArg,
-                    Function<ServiceResult, T> resultProcessor
-    ) {
-        MutableServiceResult<Garage> result = processOptional(optional, formatErrStr, formatArg);
-        T processed = resultProcessor.apply(result);
-        serviceResultPool.returnObject(result);
-
-        return processed;
-    }
-
-    private MutableServiceResult processOptional(Optional<Garage> optional, String formatErrStr, String formatArg) {
-
-        if(optional.isPresent()) {
-            return ServicesUtil.createResult(true, null, optional.get(), serviceResultPool);
-        }
-        else {
-            String errMsg = String.format(formatErrStr, formatArg);
-            return ServicesUtil.createResult(false, errMsg, null, serviceResultPool);
-        }
     }
 }

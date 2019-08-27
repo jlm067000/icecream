@@ -6,7 +6,9 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -27,6 +29,9 @@ public class TruckCRUDFactory {
 
         Answer<Optional<Truck>> updater = iom -> mockUpdate(iom, alcoholic, nonalcoholic);
         when(truckCRUD.update(any())).then(updater);
+
+        Set<Truck> trucks = toSet(alcoholic, nonalcoholic);
+        when(truckCRUD.findAll()).thenReturn(trucks);
 
         return truckCRUD;
     }
@@ -53,6 +58,15 @@ public class TruckCRUDFactory {
         }
 
         return Optional.empty();
+    }
+
+    private static Set<Truck> toSet(Truck alcoholic, Truck nonalcoholic) {
+
+        Set<Truck> trucks = new HashSet<>();
+        trucks.add(alcoholic);
+        trucks.add(nonalcoholic);
+
+        return trucks;
     }
 
 }

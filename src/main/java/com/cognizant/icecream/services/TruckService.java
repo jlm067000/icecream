@@ -6,10 +6,7 @@ import com.cognizant.icecream.clients.TruckPurchasingClient;
 import com.cognizant.icecream.models.*;
 import com.cognizant.icecream.pools.api.ResultPool;
 import com.cognizant.icecream.pools.api.ServiceResultPool;
-import com.cognizant.icecream.result.Result;
-import com.cognizant.icecream.result.ResultFactory;
-import com.cognizant.icecream.result.ResultProcessor;
-import com.cognizant.icecream.result.ServiceResultProcessor;
+import com.cognizant.icecream.result.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -53,20 +50,20 @@ public class TruckService {
         this.serviceResultPool = serviceResultPool;
     }
 
-    public <T> T getTruck(String vin, ServiceResultProcessor<T> resultProcessor) {
+    public <T> T getTruck(String vin, ServiceResultProcessor<Truck, T> resultProcessor) {
 
         Optional<Truck> truck = truckCRUD.findByVIN(vin);
 
         return ServicesUtil.processOptional(truck, NOT_FOUND, vin, serviceResultPool, resultProcessor);
     }
 
-    public <T> T addTruck(Truck truck, ServiceResultProcessor<T> resultProcessor) {
+    public <T> T addTruck(Truck truck, ServiceResultProcessor<Truck, T> resultProcessor) {
 
         Optional<Truck> added = truckCRUD.add(truck);
         return ServicesUtil.processOptional(added, COULD_NOT_ADD, truck.getVin(), serviceResultPool, resultProcessor);
     }
 
-    public <T> T updateTruck(Truck truck, ServiceResultProcessor<T> resultProcessor) {
+    public <T> T updateTruck(Truck truck, ServiceResultProcessor<Truck, T> resultProcessor) {
 
         Optional<Truck> updated = truckCRUD.update(truck);
         return ServicesUtil.processOptional(updated, COULD_NOT_UPDATE, truck.getVin(), serviceResultPool, resultProcessor);
@@ -100,9 +97,11 @@ public class TruckService {
         return ResultFactory.createResult(true, "patrol");
     }
 
-    public Set<Truck> getTrucks() {
+    public <T> T getTrucks(ServiceResultProcessor<Set<Truck>, T> resultProcessor) {
 
-        return new HashSet<>();
+        Set<Truck> trucks = new HashSet<>();
+        ServiceResult<Set<Truck>> result = ResultFactory.createServiceResult(true, "", trucks);
+        return resultProcessor.apply(result);
     }
 
     public Set<Truck> getTrucks(String garageCode) {

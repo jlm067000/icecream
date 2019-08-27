@@ -9,18 +9,18 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-public class GarageServiceResultObjectPoolTest extends PoolTest<MutableServiceResult<Garage>> {
+public class GarageResultPoolTest extends PoolTest<MutableServiceResult<Garage>> {
 
     private static final String MESSAGE = "";
     private static final Garage PAYLOAD = new Garage();
 
-    private GarageResultObjectPool pool;
+    private GarageResultPool pool;
 
     @Before
     public void setup() {
 
         super.setup(ResultFactory.createMutableServiceResult());
-        pool = new GarageResultObjectPool(factory, config, abandonedConfig);
+        pool = new GarageResultPool(factory, config, abandonedConfig);
     }
 
     @Test(expected = PoolCapacityException.class)

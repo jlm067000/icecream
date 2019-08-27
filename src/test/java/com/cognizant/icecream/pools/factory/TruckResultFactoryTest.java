@@ -8,7 +8,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertNotNull;
 
-public class TruckServiceResultFactoryTest {
+public class TruckResultFactoryTest {
 
     private static TruckResultFactory factory;
 

@@ -11,9 +11,9 @@ public class ResultProcessorFactory {
 
     static final ResultProcessor<ResponseEntity<Result>> DEFAULT_PROCESSOR;
     static final ResultProcessor<ResponseEntity<Result>> REMOVE_PROCESSOR;
-    static final ServiceResultProcessor<ResponseEntity<?>> GET_PROCESSOR;
-    static final ServiceResultProcessor<ResponseEntity<?>> ADD_PROCESSOR;
-    static final ServiceResultProcessor<ResponseEntity<?>> SERVICE_RESULT_PROCESSOR;
+    static final ServiceResultProcessor<?, ResponseEntity<?>> GET_PROCESSOR;
+    static final ServiceResultProcessor<?, ResponseEntity<?>> ADD_PROCESSOR;
+    static final ServiceResultProcessor<?,ResponseEntity<?>> SERVICE_RESULT_PROCESSOR;
 
     static {
         DEFAULT_PROCESSOR = ResultProcessorFactory::processResult;
@@ -29,9 +29,9 @@ public class ResultProcessorFactory {
         return processor;
     }
 
-    static ServiceResultProcessor<ResponseEntity<?>> createServiceResultProcessor(HttpStatus successCode,  HttpStatus failCode)
+    static <T> ServiceResultProcessor<T, ResponseEntity<?>> createServiceResultProcessor(HttpStatus successCode,  HttpStatus failCode)
     {
-        ServiceResultProcessor<ResponseEntity<?>> processor = r -> processServiceResult(r, successCode, failCode);
+        ServiceResultProcessor<T, ResponseEntity<?>> processor = r -> processServiceResult(r, successCode, failCode);
         return processor;
     }
 
