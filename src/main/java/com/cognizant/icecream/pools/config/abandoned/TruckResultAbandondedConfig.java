@@ -1,4 +1,4 @@
-package com.cognizant.icecream.pools.config;
+package com.cognizant.icecream.pools.config.abandoned;
 
 import com.cognizant.icecream.models.Truck;
 import com.cognizant.icecream.result.MutableServiceResult;

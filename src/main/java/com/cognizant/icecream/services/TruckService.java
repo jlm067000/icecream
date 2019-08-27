@@ -10,9 +10,7 @@ import com.cognizant.icecream.result.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class TruckService {
@@ -29,6 +27,8 @@ public class TruckService {
     private TruckPurchasingClient purchasingClient;
     private ResultPool resultPool;
     private ServiceResultPool<Truck> serviceResultPool;
+
+    private Map<String, Garage> garageCache;
 
     static {
         REMOVED = ResultFactory.createResult(true, "REMOVED");
@@ -48,6 +48,8 @@ public class TruckService {
         this.purchasingClient = purchasingClient;
         this.resultPool = resultPool;
         this.serviceResultPool = serviceResultPool;
+
+        this.garageCache = new HashMap<>();
     }
 
     public <T> T getTruck(String vin, ServiceResultProcessor<Truck, T> resultProcessor) {
@@ -97,16 +99,18 @@ public class TruckService {
         return ResultFactory.createResult(true, "patrol");
     }
 
-    public <T> T getTrucks(ServiceResultProcessor<Set<Truck>, T> resultProcessor) {
+    public Set<Truck> getTrucks() {
 
-        Set<Truck> trucks = new HashSet<>();
-        ServiceResult<Set<Truck>> result = ResultFactory.createServiceResult(true, "", trucks);
-        return resultProcessor.apply(result);
+        return truckCRUD.findAll();
     }
 
     public Set<Truck> getTrucks(String garageCode) {
 
-        return new HashSet<>();
+        Garage garage = getGarage(garageCode);
+
+        Set<TruckGarage> garageTrucks = garageCRUD.findAllByGarage(garage);
+
+        return toTruckSet(garageTrucks);
     }
 
     public Set<Truck> getTrucks(boolean alcoholic) {
@@ -117,5 +121,28 @@ public class TruckService {
     public Set<Truck> getTrucks(String garageCode, boolean alcoholic) {
 
         return new HashSet<>();
+    }
+
+    private Garage getGarage(String garageCode) {
+
+        if(garageCache.containsKey(garageCode)) {
+            return garageCache.get(garageCode);
+        }
+
+        Garage garage = new Garage();
+        garage.setCode(garageCode);
+
+        garageCache.put(garageCode, garage);
+
+        return garage;
+    }
+
+    private Set<Truck> toTruckSet(Set<TruckGarage> garageTrucks) {
+
+        Set<Truck> truckSet = new HashSet<>();
+
+        garageTrucks.forEach(gt -> truckSet.add(gt.getTruck()));
+
+        return truckSet;
     }
 }

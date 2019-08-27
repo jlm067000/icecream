@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -72,9 +73,17 @@ public class TruckController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getTrucks() {
+    public ResponseEntity<Set<Truck>> getTrucks() {
 
-        return service.getTrucks(setRetrievalProcessor);
+        Set<Truck> trucks = service.getTrucks();
+
+        if(trucks == null) {
+            trucks = new HashSet<>();
+        }
+
+        ResponseEntity<Set<Truck>> response = new ResponseEntity<>(trucks, HttpStatus.OK);
+
+        return response;
     }
 
     @GetMapping("garage/{code}")

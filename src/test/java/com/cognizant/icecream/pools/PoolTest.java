@@ -1,7 +1,7 @@
 package com.cognizant.icecream.pools;
 
 import com.cognizant.icecream.mock.MockFactory;
-import com.cognizant.icecream.pools.config.DefaultAbandonedConfig;
+import com.cognizant.icecream.pools.config.abandoned.DefaultAbandonedConfig;
 import org.apache.commons.pool2.PooledObjectFactory;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;

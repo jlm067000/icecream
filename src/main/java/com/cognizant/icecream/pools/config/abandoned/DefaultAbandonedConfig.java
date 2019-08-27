@@ -1,4 +1,4 @@
-package com.cognizant.icecream.pools.config;
+package com.cognizant.icecream.pools.config.abandoned;
 
 import org.apache.commons.pool2.impl.AbandonedConfig;
 

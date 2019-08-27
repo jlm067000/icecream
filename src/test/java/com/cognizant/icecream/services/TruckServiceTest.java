@@ -4,7 +4,9 @@ import com.cognizant.icecream.clients.GarageCRUD;
 import com.cognizant.icecream.clients.TruckCRUD;
 import com.cognizant.icecream.clients.TruckPurchasingClient;
 import com.cognizant.icecream.mock.MockFactory;
+import com.cognizant.icecream.models.Garage;
 import com.cognizant.icecream.models.Truck;
+import com.cognizant.icecream.models.TruckGarage;
 import com.cognizant.icecream.pools.api.ResultPool;
 import com.cognizant.icecream.pools.api.ServiceResultPool;
 import com.cognizant.icecream.result.Result;
@@ -13,23 +15,28 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 public class TruckServiceTest {
 
     private static final String PERSISTED_VIN = "12";
     private static final String UNPERSISTED_VIN = "11";
+    private static final String GARAGE_CODE = "12";
+    private static final String INVALID_CODE = "11";
 
     private static Truck alcoholic;
     private static Truck nonalcoholic;
     private static Truck unpersisted;
     private static Truck invalid;
-    private static Set<Truck> trucks;
 
     private static Object dontcare;
 
@@ -49,20 +56,18 @@ public class TruckServiceTest {
         unpersisted = generateTruck(UNPERSISTED_VIN, true);
         invalid = new Truck();
         dontcare = new Object();
-
-        trucks = new HashSet<>();
-        trucks.add(alcoholic);
-        trucks.add(nonalcoholic);
     }
 
     @Before
     public void setup() {
 
-        garageCRUD = Mockito.mock(GarageCRUD.class);
         truckCRUD = MockFactory.createTruckCRUD(alcoholic, nonalcoholic, unpersisted);
         purchasingClient = Mockito.mock(TruckPurchasingClient.class);
         resultPool = MockFactory.createResultPool();
         serviceResultPool = MockFactory.createServiceResultPool();
+        garageCRUD = Mockito.mock(GarageCRUD.class);
+
+        when(garageCRUD.findAllByGarage(any())).then(this::mockGetTrucksByGarage);
 
         truckService = new TruckService(garageCRUD, truckCRUD, purchasingClient, resultPool, serviceResultPool);
     }
@@ -186,24 +191,29 @@ public class TruckServiceTest {
     @Test
     public void testGetTrucks() {
 
-        truckService.getTrucks(this::testGetAllTrucks);
-    }
-
-    private Object testGetAllTrucks(ServiceResult<Set<Truck>> result) {
-
-        assertNotNull(result);
-        assertTrue(result.isSuccess());
-
-        Set<Truck> trucks = result.getPayload();
+        Set<Truck> trucks = truckService.getTrucks();
 
         assertNotNull(trucks);
-        assertEquals(2, trucks.size());
+        assertEquals(1, trucks.size());
         assertTrue(trucks.contains(alcoholic));
-        assertTrue(trucks.contains(nonalcoholic));
 
         verify(truckCRUD).findAll();
+    }
 
-        return dontcare;
+    @Test
+    public void testGetTrucksByGarageCode() {
+
+        Set<Truck> trucks = truckService.getTrucks(GARAGE_CODE);
+
+        assertNotNull(trucks);
+        assertEquals(1, trucks.size());
+        assertTrue(trucks.contains(alcoholic));
+        verify(garageCRUD).findAllByGarage(any());
+
+        trucks = truckService.getTrucks(INVALID_CODE);
+        assertNotNull(trucks);
+        assertTrue(trucks.isEmpty());
+        verify(garageCRUD, times(2)).findAllByGarage(any());
     }
 
     private static Truck generateTruck(String VIN, boolean alcoholic) {
@@ -213,5 +223,27 @@ public class TruckServiceTest {
         truck.setAlcoholic(alcoholic);
 
         return truck;
+    }
+
+    private Set<TruckGarage> mockGetTrucksByGarage(InvocationOnMock iom) {
+
+        Garage garage = iom.getArgument(0);
+
+        if(garage == null) {
+            return new HashSet<>();
+        }
+        else if(!GARAGE_CODE.equals(garage.getCode())) {
+            return new HashSet<>();
+        }
+
+        Set<TruckGarage> garageTrucks = new HashSet<>();
+
+        TruckGarage truckGarage = new TruckGarage();
+        truckGarage.setTruck(alcoholic);
+        truckGarage.setGarage(garage);
+
+        garageTrucks.add(truckGarage);
+
+        return garageTrucks;
     }
 }
