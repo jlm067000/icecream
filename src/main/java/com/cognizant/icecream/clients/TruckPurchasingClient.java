@@ -1,5 +1,6 @@
 package com.cognizant.icecream.clients;
 
+import com.cognizant.icecream.models.Invoice;
 import com.cognizant.icecream.result.ResultFactory;
 import com.cognizant.icecream.result.Result;
 import com.cognizant.icecream.models.Garage;
@@ -28,24 +29,21 @@ public class TruckPurchasingClient {
         this.truckCRUD = truckCRUD;
     }
 
-    public Result purchaseTrucks(TruckPurchaseOrder tpo) {
+    public Optional<Invoice> purchaseTrucks(TruckPurchaseOrder tpo) {
 
         Garage garage = tpo.getGarage();
 
         boolean garageExists = garageCRUD.findByCode(garage.getCode()).isPresent();
 
         if(!garageExists) {
-            return ResultFactory.createResult(false, "Garage " + garage.getCode() + " does not exist");
+            return Optional.empty();
         }
 
         Optional<Truck> preexisting = preexistingTruck(tpo.getTrucks());
 
         if(preexisting.isPresent()) {
 
-            String vin = preexisting.get().getVin();
-            String errMsg = "Truck of VIN " + vin + " has already been purchased";
-
-            return ResultFactory.createResult(false, errMsg);
+            return Optional.empty();
         }
 
         try {
@@ -53,7 +51,7 @@ public class TruckPurchasingClient {
         }
         catch(InterruptedException ex) {}
 
-        return ResultFactory.createResult(true, "Purchase scheduled");
+        return Optional.of(new Invoice());
     }
 
     private Optional<Truck> preexistingTruck(Set<Truck> trucks) {

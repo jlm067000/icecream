@@ -4,9 +4,7 @@ import com.cognizant.icecream.clients.GarageCRUD;
 import com.cognizant.icecream.clients.TruckCRUD;
 import com.cognizant.icecream.clients.TruckPurchasingClient;
 import com.cognizant.icecream.mock.MockFactory;
-import com.cognizant.icecream.models.Garage;
-import com.cognizant.icecream.models.Truck;
-import com.cognizant.icecream.models.TruckGarage;
+import com.cognizant.icecream.models.*;
 import com.cognizant.icecream.pools.api.ResultPool;
 import com.cognizant.icecream.pools.api.ServiceResultPool;
 import com.cognizant.icecream.result.Result;
@@ -18,27 +16,36 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 public class TruckServiceTest {
 
-    private static final String PERSISTED_VIN = "12";
+    private static final String ALCOHOLIC_VIN = "13";
+    private static final String NONALCOHOLIC_VIN = "12";
     private static final String UNPERSISTED_VIN = "11";
     private static final String GARAGE_CODE = "12";
     private static final String INVALID_CODE = "11";
 
-    private static Truck alcoholic;
-    private static Truck nonalcoholic;
     private static Truck unpersisted;
     private static Truck invalid;
 
+    private static Garage validGarage;
+    private static Garage invalidGarage;
+
+    private TruckPurchaseOrder validOrder;
+    private TruckPurchaseOrder existingTrucksOrder;
+    private TruckPurchaseOrder invalidGarageOrder;
+
     private static Object dontcare;
+
+    private Truck alcoholic;
+    private Truck nonalcoholic;
 
     private GarageCRUD garageCRUD;
     private TruckCRUD truckCRUD;
@@ -51,31 +58,93 @@ public class TruckServiceTest {
     @BeforeClass
     public static void init() {
 
-        alcoholic = generateTruck(PERSISTED_VIN, true);
-        nonalcoholic = generateTruck(PERSISTED_VIN, false);
         unpersisted = generateTruck(UNPERSISTED_VIN, true);
         invalid = new Truck();
+        validGarage = new Garage();
+        validGarage.setCode(GARAGE_CODE);
+        invalidGarage = new Garage();
+        invalidGarage.setCode(INVALID_CODE);
         dontcare = new Object();
     }
 
     @Before
     public void setup() {
 
+        alcoholic = generateTruck(ALCOHOLIC_VIN, true);
+        nonalcoholic = generateTruck(NONALCOHOLIC_VIN, false);
+
+        initializePurchaseOrders();
+        mockPurchasingClient();
+
         truckCRUD = MockFactory.createTruckCRUD(alcoholic, nonalcoholic, unpersisted);
-        purchasingClient = Mockito.mock(TruckPurchasingClient.class);
         resultPool = MockFactory.createResultPool();
         serviceResultPool = MockFactory.createServiceResultPool();
+
+        mockGarage();
+
+        truckService = new TruckService(garageCRUD, truckCRUD, purchasingClient, resultPool, serviceResultPool);
+    }
+
+    private void initializePurchaseOrders() {
+
+        Set<Truck> newTrucks = new HashSet<>();
+        newTrucks.add(unpersisted);
+
+        Set<Truck> existing = new HashSet<>();
+        existing.add(alcoholic);
+        existing.add(nonalcoholic);
+
+        PaymentDetails details = new PaymentDetails();
+
+        validOrder = new TruckPurchaseOrder();
+        validOrder.setGarage(validGarage);
+        validOrder.setTrucks(newTrucks);
+        validOrder.setPaymentDetails(details);
+
+        invalidGarageOrder = new TruckPurchaseOrder();
+        invalidGarageOrder.setGarage(invalidGarage);
+        invalidGarageOrder.setPaymentDetails(details);
+
+        existingTrucksOrder = new TruckPurchaseOrder();
+        existingTrucksOrder.setGarage(validGarage);
+        existingTrucksOrder.setTrucks(existing);
+    }
+
+    private void mockGarage() {
+
         garageCRUD = Mockito.mock(GarageCRUD.class);
 
         when(garageCRUD.findAllByGarage(any())).then(this::mockGetTrucksByGarage);
+        when(garageCRUD.findByCode(GARAGE_CODE)).then(this::mockGetGarage);
+    }
 
-        truckService = new TruckService(garageCRUD, truckCRUD, purchasingClient, resultPool, serviceResultPool);
+    private Optional<Garage> mockGetGarage(InvocationOnMock iom) {
+
+        String garageCode = iom.getArgument(0);
+
+        if(GARAGE_CODE.equals(garageCode)) {
+            return Optional.of(validGarage);
+        }
+        else {
+            return Optional.empty();
+        }
+    }
+
+    private void mockPurchasingClient() {
+
+        Invoice invoice = new Invoice();
+
+        purchasingClient = Mockito.mock(TruckPurchasingClient.class);
+
+        when(purchasingClient.purchaseTrucks(validOrder)).thenReturn(Optional.of(invoice));
+        when(purchasingClient.purchaseTrucks(invalidGarageOrder)).thenReturn(Optional.empty());
+        when(purchasingClient.purchaseTrucks(existingTrucksOrder)).thenReturn(Optional.empty());
     }
 
     @Test
     public void testGetTruck() {
 
-        truckService.getTruck(PERSISTED_VIN, this::testGetPersisted);
+        truckService.getTruck(ALCOHOLIC_VIN, this::testGetPersisted);
         truckService.getTruck(UNPERSISTED_VIN, this::testGetUnpersisted);
     }
 
@@ -86,8 +155,8 @@ public class TruckServiceTest {
 
         Truck truck = result.getPayload();
 
-        assertEquals(truck.getVin(), PERSISTED_VIN);
-        verify(truckCRUD).findByVIN(PERSISTED_VIN);
+        assertEquals(truck.getVin(), ALCOHOLIC_VIN);
+        verify(truckCRUD).findByVIN(ALCOHOLIC_VIN);
 
         return dontcare;
     }
@@ -138,6 +207,7 @@ public class TruckServiceTest {
     @Test
     public void testUpdateTruck() {
 
+        nonalcoholic.setAlcoholic(true);
         truckService.updateTruck(nonalcoholic, this::testUpdateNonalchoholic);
         truckService.updateTruck(unpersisted, this::testUpdateUnpersisted);
     }
@@ -150,6 +220,7 @@ public class TruckServiceTest {
         Truck updated = result.getPayload();
 
         assertEquals(updated, nonalcoholic);
+        assertTrue(nonalcoholic.isAlcoholic());
         verify(truckCRUD).update(nonalcoholic);
 
         return dontcare;
@@ -168,14 +239,14 @@ public class TruckServiceTest {
     @Test
     public void testRemoveTruck() {
 
-        truckService.removeTruck(PERSISTED_VIN, this::testRemovePersistedTruck);
+        truckService.removeTruck(ALCOHOLIC_VIN, this::testRemovePersistedTruck);
         truckService.removeTruck(UNPERSISTED_VIN, this::testRemoveUnpersistedTruck);
     }
 
     private Object testRemovePersistedTruck(Result result) {
 
         assertTrue(result.isSuccess());
-        verify(truckCRUD).remove(PERSISTED_VIN);
+        verify(truckCRUD).remove(ALCOHOLIC_VIN);
 
         return dontcare;
     }
@@ -189,13 +260,39 @@ public class TruckServiceTest {
     }
 
     @Test
+    public void testPurchaseTrucks() {
+
+        truckService.purchaseTrucks("", validOrder, this::testValidPurchaseOrder);
+        truckService.purchaseTrucks("", invalidGarageOrder, this::testInvalidPurchaseOrder);
+        truckService.purchaseTrucks("", existingTrucksOrder, this::testInvalidPurchaseOrder);
+    }
+
+    private Object testValidPurchaseOrder(ServiceResult<Invoice> result) {
+
+        assertNotNull(result);
+        assertTrue(result.isSuccess());
+        assertNotNull(result.getPayload());
+
+        return dontcare;
+    }
+
+    private Object testInvalidPurchaseOrder(ServiceResult<Invoice> result) {
+
+        assertNotNull(result);
+        assertFalse(result.isSuccess());
+
+        return dontcare;
+    }
+
+    @Test
     public void testGetTrucks() {
 
         Set<Truck> trucks = truckService.getTrucks();
 
         assertNotNull(trucks);
-        assertEquals(1, trucks.size());
+        assertEquals(2, trucks.size());
         assertTrue(trucks.contains(alcoholic));
+        assertTrue(trucks.contains(nonalcoholic));
 
         verify(truckCRUD).findAll();
     }
@@ -206,14 +303,56 @@ public class TruckServiceTest {
         Set<Truck> trucks = truckService.getTrucks(GARAGE_CODE);
 
         assertNotNull(trucks);
-        assertEquals(1, trucks.size());
+        assertEquals(2, trucks.size());
         assertTrue(trucks.contains(alcoholic));
+        assertTrue(trucks.contains(nonalcoholic));
         verify(garageCRUD).findAllByGarage(any());
 
         trucks = truckService.getTrucks(INVALID_CODE);
         assertNotNull(trucks);
         assertTrue(trucks.isEmpty());
-        verify(garageCRUD, times(2)).findAllByGarage(any());
+    }
+
+    @Test
+    public void testGetAllByAlcholic() {
+
+        Set<Truck> trucks = truckService.getTrucks(true);
+
+        assertNotNull(trucks);
+        assertEquals(1, trucks.size());
+        assertTrue(trucks.contains(alcoholic));
+
+        trucks = truckService.getTrucks(false);
+
+        assertNotNull(trucks);
+        assertEquals(1, trucks.size());
+        assertTrue(trucks.contains(nonalcoholic));
+    }
+
+    @Test
+    public void testGetAllByCodeAndAlcoholic() {
+
+        Set<Truck> trucks = truckService.getTrucks(GARAGE_CODE,true);
+
+        assertNotNull(trucks);
+        assertEquals(1, trucks.size());
+        assertTrue(trucks.contains(alcoholic));
+
+        trucks = truckService.getTrucks(GARAGE_CODE,false);
+
+        assertNotNull(trucks);
+        assertEquals(1, trucks.size());
+        assertTrue(trucks.contains(nonalcoholic));
+
+        trucks = truckService.getTrucks(INVALID_CODE,true);
+
+        assertNotNull(trucks);
+        assertTrue(trucks.isEmpty());
+
+        trucks = truckService.getTrucks(INVALID_CODE,false);
+
+        assertNotNull(trucks);
+        assertTrue(trucks.isEmpty());
     }
 
     private static Truck generateTruck(String VIN, boolean alcoholic) {
@@ -238,12 +377,21 @@ public class TruckServiceTest {
 
         Set<TruckGarage> garageTrucks = new HashSet<>();
 
-        TruckGarage truckGarage = new TruckGarage();
-        truckGarage.setTruck(alcoholic);
-        truckGarage.setGarage(garage);
+        TruckGarage alcoholicTG = createTruckGarage(garage, alcoholic);
+        TruckGarage nonalcoholicTG = createTruckGarage(garage, nonalcoholic);
 
-        garageTrucks.add(truckGarage);
+        garageTrucks.add(alcoholicTG);
+        garageTrucks.add(nonalcoholicTG);
 
         return garageTrucks;
+    }
+
+    private TruckGarage createTruckGarage(Garage garage, Truck truck) {
+
+        TruckGarage truckGarage = new TruckGarage();
+        truckGarage.setGarage(garage);
+        truckGarage.setTruck(truck);
+
+        return truckGarage;
     }
 }

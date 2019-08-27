@@ -19,19 +19,25 @@ public class TruckService {
     private static final String NOT_FOUND = "Could not find truck of VIN %s. " + VERIFY_ADD;
     private static final String COULD_NOT_ADD = "Could not add truck of VIN %s.";
     private static final String COULD_NOT_UPDATE = "Could not update truck of VIN %s. " + VERIFY_ADD;
+    private static final String COULD_NOT_PURCHASE = "Failed to process Purchase Order. " +
+            "                       Contact Accounting Department for more information";
 
     private static final Result REMOVED;
+
+    private static final Set<Truck> EMPTY_SET;
 
     private GarageCRUD garageCRUD;
     private TruckCRUD truckCRUD;
     private TruckPurchasingClient purchasingClient;
     private ResultPool resultPool;
     private ServiceResultPool<Truck> serviceResultPool;
+    private ServiceResultPool<Invoice> invoiceResultPool;
 
     private Map<String, Garage> garageCache;
 
     static {
         REMOVED = ResultFactory.createResult(true, "REMOVED");
+        EMPTY_SET = new HashSet<>();
     }
 
     @Autowired
@@ -40,7 +46,8 @@ public class TruckService {
             TruckCRUD truckCRUD,
             TruckPurchasingClient purchasingClient,
             ResultPool resultPool,
-            ServiceResultPool<Truck> serviceResultPool
+            ServiceResultPool<Truck> serviceResultPool,
+            ServiceResultPool<Invoice> invoiceResultPool
     ) {
 
         this.garageCRUD = garageCRUD;
@@ -48,6 +55,7 @@ public class TruckService {
         this.purchasingClient = purchasingClient;
         this.resultPool = resultPool;
         this.serviceResultPool = serviceResultPool;
+        this.invoiceResultPool = invoiceResultPool;
 
         this.garageCache = new HashMap<>();
     }
@@ -84,9 +92,15 @@ public class TruckService {
         return resultProcessor.apply(result);
     }
 
-    public Invoice purchaseTrucks(String authorization, TruckPurchaseOrder order) {
+    public <T> T purchaseTrucks(
+            String authorization,
+            TruckPurchaseOrder order,
+            ServiceResultProcessor<Invoice, T> resultProcessor)
+    {
 
-        return new Invoice();
+        Optional<Invoice> invoice = purchasingClient.purchaseTrucks(order);
+
+        return ServicesUtil.processOptional(invoice, COULD_NOT_PURCHASE, invoiceResultPool, resultProcessor);
     }
 
     public Result deploy(TruckGarage truckGarage) {
@@ -108,6 +122,10 @@ public class TruckService {
 
         Garage garage = getGarage(garageCode);
 
+        if(garage == null) {
+            return EMPTY_SET;
+        }
+
         Set<TruckGarage> garageTrucks = garageCRUD.findAllByGarage(garage);
 
         return toTruckSet(garageTrucks);
@@ -115,12 +133,20 @@ public class TruckService {
 
     public Set<Truck> getTrucks(boolean alcoholic) {
 
-        return new HashSet<>();
+        Set<Truck> trucks = truckCRUD.findAll();
+
+        trucks.removeIf(t -> t.isAlcoholic() ^ alcoholic);
+
+        return trucks;
     }
 
     public Set<Truck> getTrucks(String garageCode, boolean alcoholic) {
 
-        return new HashSet<>();
+        Set<Truck> trucks = getTrucks(garageCode);
+
+        trucks.removeIf(t -> t.isAlcoholic() ^ alcoholic);
+
+        return trucks;
     }
 
     private Garage getGarage(String garageCode) {
@@ -129,12 +155,14 @@ public class TruckService {
             return garageCache.get(garageCode);
         }
 
-        Garage garage = new Garage();
-        garage.setCode(garageCode);
+        Optional<Garage> garage = garageCRUD.findByCode(garageCode);
 
-        garageCache.put(garageCode, garage);
+        if(!garage.isPresent()) {
+            return null;
+        }
 
-        return garage;
+        garageCache.put(garageCode, garage.get());
+        return garage.get();
     }
 
     private Set<Truck> toTruckSet(Set<TruckGarage> garageTrucks) {

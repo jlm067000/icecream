@@ -19,9 +19,11 @@ public class TruckCRUDFactory {
 
         TruckCRUD truckCRUD = Mockito.mock(TruckCRUD.class);
         when(truckCRUD.findByVIN(alcoholic.getVin())).thenReturn(Optional.of(alcoholic));
+        when(truckCRUD.findByVIN(nonalcoholic.getVin())).thenReturn(Optional.of(alcoholic));
         when(truckCRUD.findByVIN(newTruck.getVin())).thenReturn(Optional.empty());
 
         when(truckCRUD.remove(alcoholic.getVin())).thenReturn(true);
+        when(truckCRUD.remove(nonalcoholic.getVin())).thenReturn(true);
         when(truckCRUD.remove(newTruck.getVin())).thenReturn(false);
 
         Answer<Optional<Truck>> adder = iom -> mockAdd(iom, alcoholic, nonalcoholic, newTruck);
@@ -30,8 +32,8 @@ public class TruckCRUDFactory {
         Answer<Optional<Truck>> updater = iom -> mockUpdate(iom, alcoholic, nonalcoholic);
         when(truckCRUD.update(any())).then(updater);
 
-        Set<Truck> trucks = toSet(alcoholic, nonalcoholic);
-        when(truckCRUD.findAll()).thenReturn(trucks);
+        Answer<Set<Truck>> collector = iom -> mockFindAll(iom, alcoholic, nonalcoholic);
+        when(truckCRUD.findAll()).then(collector);
 
         return truckCRUD;
     }
@@ -60,7 +62,7 @@ public class TruckCRUDFactory {
         return Optional.empty();
     }
 
-    private static Set<Truck> toSet(Truck alcoholic, Truck nonalcoholic) {
+    private static Set<Truck> mockFindAll(InvocationOnMock iom, Truck alcoholic, Truck nonalcoholic) {
 
         Set<Truck> trucks = new HashSet<>();
         trucks.add(alcoholic);

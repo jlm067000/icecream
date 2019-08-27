@@ -8,6 +8,7 @@ import com.cognizant.icecream.result.ResultFactory;
 import com.cognizant.icecream.result.ServiceResultProcessor;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 class ServicesUtil {
 
@@ -31,33 +32,64 @@ class ServicesUtil {
         }
     }
 
-    static <T, U> T processOptional(
+    static <T,U> T processOptional(
             Optional<U> optional,
-            String formatErrStr,
-            String formatArg,
-            ServiceResultPool<U> resultPool,
-            ServiceResultProcessor<U, T> resultProcessor
+            String errMsg,
+            ServiceResultPool<U> pool,
+            ServiceResultProcessor<U,T> resultProcessor
     ) {
-        MutableServiceResult<U> result = processOptional(optional, formatErrStr, formatArg, resultPool);
-        T processed = resultProcessor.apply(result);
-        resultPool.returnObject(result);
+        MutableServiceResult<U> result = processOptional(optional, errMsg, pool);
 
-        return processed;
+        return processResult(result, pool, resultProcessor);
     }
 
-    private static <T, U> MutableServiceResult<U> processOptional(
+    private static <U> MutableServiceResult<U> processOptional(Optional<U> optional, String errMsg, ServiceResultPool<U> pool) {
+
+        if(optional.isPresent()) {
+            return createResult(true, null, optional.get(), pool);
+        }
+        else {
+            return createResult(false, errMsg, null, pool);
+        }
+    }
+
+    static <T,U> T processOptional(
             Optional<U> optional,
             String formatErrStr,
             String formatArg,
-            ServiceResultPool<U> resultPool
+            ServiceResultPool<U> pool,
+            ServiceResultProcessor<U,T> resultProcessor
+    ) {
+        MutableServiceResult<U> result = processOptional(optional, formatErrStr, formatArg, pool);
+
+        return processResult(result, pool, resultProcessor);
+    }
+
+    private static <U> MutableServiceResult<U> processOptional(
+            Optional<U> optional,
+            String formatErrStr,
+            String formatArg,
+            ServiceResultPool<U> pool
     ) {
 
         if(optional.isPresent()) {
-            return ServicesUtil.createResult(true, null, optional.get(), resultPool);
+            return createResult(true, null, optional.get(), pool);
         }
         else {
             String errMsg = String.format(formatErrStr, formatArg);
-            return ServicesUtil.createResult(false, errMsg, null, resultPool);
+            return createResult(false, errMsg, null, pool);
         }
+    }
+
+    private static <T,U> T processResult(
+            MutableServiceResult<U> result,
+            ServiceResultPool<U> pool,
+            ServiceResultProcessor<U,T> resultProcessor
+    ) {
+
+        T processed = resultProcessor.apply(result);
+        pool.returnObject(result);
+
+        return processed;
     }
 }

@@ -26,6 +26,7 @@ public class TruckController {
     private ServiceResultProcessor<Truck, ResponseEntity<?>> retrievalProcessor;
     private ServiceResultProcessor<Truck, ResponseEntity<?>> addProcessor;
     private ServiceResultProcessor<Truck, ResponseEntity<?>> defaultProcessor;
+    private ServiceResultProcessor<Invoice, ResponseEntity<?>> invoiceProcessor;
     private ServiceResultProcessor<Set<Truck>, ResponseEntity<?>> setRetrievalProcessor;
 
     @Autowired
@@ -39,6 +40,7 @@ public class TruckController {
         retrievalProcessor = createServiceResultProcessor(HttpStatus.OK, HttpStatus.NOT_FOUND);
         addProcessor = createServiceResultProcessor(HttpStatus.CREATED, HttpStatus.OK);
         defaultProcessor = createServiceResultProcessor(HttpStatus.OK, HttpStatus.BAD_REQUEST);
+        invoiceProcessor = createServiceResultProcessor(HttpStatus.OK, HttpStatus.BAD_REQUEST);
         setRetrievalProcessor = createServiceResultProcessor(HttpStatus.OK, HttpStatus.NOT_FOUND);
     }
 
@@ -122,10 +124,9 @@ public class TruckController {
     }
 
     @PostMapping("purchase")
-    public ResponseEntity<Invoice> purchaseTrucks(@RequestHeader("Authorization") String auth, @Valid @RequestBody TruckPurchaseOrder order) {
+    public ResponseEntity<?> purchaseTrucks(@RequestHeader("Authorization") String auth, @Valid @RequestBody TruckPurchaseOrder order) {
 
-        Invoice invoice = service.purchaseTrucks(auth, order);
-        return new ResponseEntity<>(invoice, HttpStatus.OK);
+        return service.purchaseTrucks(auth, order, invoiceProcessor);
     }
 
     @PostMapping("deploy")
