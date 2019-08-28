@@ -8,7 +8,6 @@ import com.cognizant.icecream.result.ResultFactory;
 import com.cognizant.icecream.result.ServiceResultProcessor;
 
 import java.util.Optional;
-import java.util.function.Supplier;
 
 class ServicesUtil {
 
