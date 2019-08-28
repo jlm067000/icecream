@@ -1,4 +1,3 @@
 package com.cognizant.icecream.models;
 
-public class Neighborhood {
-}
+public class Neighborhood {}

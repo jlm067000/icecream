@@ -43,11 +43,11 @@ public class TruckServiceTest {
 
     private static Neighborhood neighborhood;
 
+    private static Object dontcare;
+
     private TruckPurchaseOrder validOrder;
     private TruckPurchaseOrder existingTrucksOrder;
     private TruckPurchaseOrder invalidGarageOrder;
-
-    private static Object dontcare;
 
     private Truck alcoholic;
     private Truck nonalcoholic;
@@ -78,10 +78,8 @@ public class TruckServiceTest {
     @Before
     public void setup() {
 
-        alcoholic = generateTruck(ALCOHOLIC_VIN, true);
-        nonalcoholic = generateTruck(NONALCOHOLIC_VIN, false);
+        initializeTestData();
 
-        initializePurchaseOrders();
         mockPurchasingClient();
         mockDeploymentClient();
 
@@ -90,9 +88,17 @@ public class TruckServiceTest {
         serviceResultPool = MockFactory.createServiceResultPool();
         invoicePool = MockFactory.createServiceResultPool();
 
-        mockGarage();
+        mockGarageCRUD();
 
         truckService = new TruckService(garageCRUD, truckCRUD, purchasingClient, deploymentClient, resultPool, serviceResultPool, invoicePool);
+    }
+
+    private void initializeTestData() {
+
+        alcoholic = generateTruck(ALCOHOLIC_VIN, true);
+        nonalcoholic = generateTruck(NONALCOHOLIC_VIN, false);
+
+        initializePurchaseOrders();
     }
 
     private void initializePurchaseOrders() {
@@ -122,7 +128,7 @@ public class TruckServiceTest {
         existingTrucksOrder.setPaymentDetails(details);
     }
 
-    private void mockGarage() {
+    private void mockGarageCRUD() {
 
         garageCRUD = Mockito.mock(GarageCRUD.class);
 

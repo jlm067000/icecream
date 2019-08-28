@@ -1,4 +1,3 @@
 package com.cognizant.icecream.models;
 
-public class PaymentDetails {
-}
+public class PaymentDetails {}
