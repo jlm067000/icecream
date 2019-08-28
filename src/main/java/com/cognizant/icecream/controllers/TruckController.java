@@ -132,15 +132,13 @@ public class TruckController {
     @PostMapping("deploy")
     public ResponseEntity<?> deploy(@Valid @RequestBody TruckGarage truckGarage) {
 
-        Result result = service.deploy(truckGarage);
-        return ResultProcessorFactory.DEFAULT_PROCESSOR.apply(result);
+        return service.deploy(truckGarage, ResultProcessorFactory.DEFAULT_PROCESSOR);
     }
 
     @PostMapping("patrol")
     public ResponseEntity<Result> patrolAlcoholic(@RequestParam boolean alcoholic, @RequestBody Neighborhood neighborhood) {
 
-        Result result = service.patrol(alcoholic, neighborhood);
-        return ResultProcessorFactory.DEFAULT_PROCESSOR.apply(result);
+        return service.patrol(alcoholic, neighborhood, ResultProcessorFactory.DEFAULT_PROCESSOR);
     }
 
     private static ResponseEntity<String> checkPathVariableMismatch(String pathVariable, Truck truck, String errorMsg)

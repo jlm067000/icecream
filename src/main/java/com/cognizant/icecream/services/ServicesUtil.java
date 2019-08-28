@@ -56,7 +56,7 @@ class ServicesUtil {
     static <T,U> T processOptional(
             Optional<U> optional,
             String formatErrStr,
-            String formatArg,
+            Object formatArg,
             ServiceResultPool<U> pool,
             ServiceResultProcessor<U,T> resultProcessor
     ) {
@@ -68,7 +68,7 @@ class ServicesUtil {
     private static <U> MutableServiceResult<U> processOptional(
             Optional<U> optional,
             String formatErrStr,
-            String formatArg,
+            Object formatArg,
             ServiceResultPool<U> pool
     ) {
 

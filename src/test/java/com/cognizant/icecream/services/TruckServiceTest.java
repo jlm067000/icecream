@@ -2,12 +2,15 @@ package com.cognizant.icecream.services;
 
 import com.cognizant.icecream.clients.GarageCRUD;
 import com.cognizant.icecream.clients.TruckCRUD;
+import com.cognizant.icecream.clients.TruckDeploymentClient;
 import com.cognizant.icecream.clients.TruckPurchasingClient;
 import com.cognizant.icecream.mock.MockFactory;
 import com.cognizant.icecream.models.*;
 import com.cognizant.icecream.pools.api.ResultPool;
 import com.cognizant.icecream.pools.api.ServiceResultPool;
 import com.cognizant.icecream.result.Result;
+import com.cognizant.icecream.result.ResultFactory;
+import com.cognizant.icecream.result.ResultProcessor;
 import com.cognizant.icecream.result.ServiceResult;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -38,6 +41,8 @@ public class TruckServiceTest {
     private static Garage validGarage;
     private static Garage invalidGarage;
 
+    private static Neighborhood neighborhood;
+
     private TruckPurchaseOrder validOrder;
     private TruckPurchaseOrder existingTrucksOrder;
     private TruckPurchaseOrder invalidGarageOrder;
@@ -50,8 +55,10 @@ public class TruckServiceTest {
     private GarageCRUD garageCRUD;
     private TruckCRUD truckCRUD;
     private TruckPurchasingClient purchasingClient;
+    private TruckDeploymentClient deploymentClient;
     private ResultPool resultPool;
     private ServiceResultPool<Truck> serviceResultPool;
+    private ServiceResultPool<Invoice> invoicePool;
 
     private TruckService truckService;
 
@@ -64,6 +71,7 @@ public class TruckServiceTest {
         validGarage.setCode(GARAGE_CODE);
         invalidGarage = new Garage();
         invalidGarage.setCode(INVALID_CODE);
+        neighborhood = new Neighborhood();
         dontcare = new Object();
     }
 
@@ -75,14 +83,16 @@ public class TruckServiceTest {
 
         initializePurchaseOrders();
         mockPurchasingClient();
+        mockDeploymentClient();
 
         truckCRUD = MockFactory.createTruckCRUD(alcoholic, nonalcoholic, unpersisted);
         resultPool = MockFactory.createResultPool();
         serviceResultPool = MockFactory.createServiceResultPool();
+        invoicePool = MockFactory.createServiceResultPool();
 
         mockGarage();
 
-        truckService = new TruckService(garageCRUD, truckCRUD, purchasingClient, resultPool, serviceResultPool);
+        truckService = new TruckService(garageCRUD, truckCRUD, purchasingClient, deploymentClient, resultPool, serviceResultPool, invoicePool);
     }
 
     private void initializePurchaseOrders() {
@@ -103,11 +113,13 @@ public class TruckServiceTest {
 
         invalidGarageOrder = new TruckPurchaseOrder();
         invalidGarageOrder.setGarage(invalidGarage);
+        invalidGarageOrder.setTrucks(newTrucks);
         invalidGarageOrder.setPaymentDetails(details);
 
         existingTrucksOrder = new TruckPurchaseOrder();
         existingTrucksOrder.setGarage(validGarage);
         existingTrucksOrder.setTrucks(existing);
+        existingTrucksOrder.setPaymentDetails(details);
     }
 
     private void mockGarage() {
@@ -130,6 +142,28 @@ public class TruckServiceTest {
         }
     }
 
+    private Set<TruckGarage> mockGetTrucksByGarage(InvocationOnMock iom) {
+
+        Garage garage = iom.getArgument(0);
+
+        if(garage == null) {
+            return new HashSet<>();
+        }
+        else if(!GARAGE_CODE.equals(garage.getCode())) {
+            return new HashSet<>();
+        }
+
+        Set<TruckGarage> garageTrucks = new HashSet<>();
+
+        TruckGarage alcoholicTG = createTruckGarage(garage, alcoholic);
+        TruckGarage nonalcoholicTG = createTruckGarage(garage, nonalcoholic);
+
+        garageTrucks.add(alcoholicTG);
+        garageTrucks.add(nonalcoholicTG);
+
+        return garageTrucks;
+    }
+
     private void mockPurchasingClient() {
 
         Invoice invoice = new Invoice();
@@ -139,6 +173,15 @@ public class TruckServiceTest {
         when(purchasingClient.purchaseTrucks(validOrder)).thenReturn(Optional.of(invoice));
         when(purchasingClient.purchaseTrucks(invalidGarageOrder)).thenReturn(Optional.empty());
         when(purchasingClient.purchaseTrucks(existingTrucksOrder)).thenReturn(Optional.empty());
+    }
+
+    private void mockDeploymentClient() {
+
+        Result result = ResultFactory.createResult(true, "");
+        deploymentClient = Mockito.mock(TruckDeploymentClient.class);
+        when(deploymentClient.deployTruck(any())).thenReturn(result);
+        when(deploymentClient.patrol(true, neighborhood)).thenReturn(true);
+        when(deploymentClient.patrol(false, neighborhood)).thenReturn(true);
     }
 
     @Test
@@ -285,6 +328,72 @@ public class TruckServiceTest {
     }
 
     @Test
+    public void testDeployTruck() {
+
+        TruckGarage truckGarage = new TruckGarage();
+
+        ResultProcessor<Object> resultProcessor = r -> testDeployValidTruckGarage(r, truckGarage);
+
+        truckGarage.setTruck(alcoholic);
+        truckGarage.setGarage(validGarage);
+
+        truckService.deploy(truckGarage, resultProcessor);
+
+        resultProcessor = r -> testDeployInvalidTruckGarage(r, truckGarage);
+
+        truckGarage.setTruck(unpersisted);
+        truckGarage.setGarage(validGarage);
+
+        truckService.deploy(truckGarage, resultProcessor);
+
+        truckGarage.setTruck(alcoholic);
+        truckGarage.setGarage(invalidGarage);
+
+        truckService.deploy(truckGarage, resultProcessor);
+
+        truckGarage.setTruck(unpersisted);
+        truckGarage.setGarage(invalidGarage);
+
+        truckService.deploy(truckGarage, resultProcessor);
+    }
+
+    private Object testDeployValidTruckGarage(Result result, TruckGarage truckGarage) {
+
+        assertNotNull(result);
+        assertTrue(result.isSuccess());
+        verify(deploymentClient).deployTruck(truckGarage);
+
+        return dontcare;
+    }
+
+    private Object testDeployInvalidTruckGarage(Result result, TruckGarage truckGarage) {
+
+        assertNotNull(result);
+        assertFalse(result.isSuccess());
+
+        return dontcare;
+    }
+
+    @Test
+    public void testPatrol() {
+
+        ResultProcessor<Object> resultProcessor = r -> testPatrol(r, true, neighborhood);
+        truckService.patrol(true, neighborhood, resultProcessor);
+
+        resultProcessor = r -> testPatrol(r, false, neighborhood);
+        truckService.patrol(false, neighborhood, resultProcessor);
+    }
+
+    private Object testPatrol(Result result, boolean isAlcoholic, Neighborhood neighborhood) {
+
+        assertNotNull(result);
+        assertTrue(result.isSuccess());
+        verify(deploymentClient).patrol(isAlcoholic, neighborhood);
+
+        return dontcare;
+    }
+
+    @Test
     public void testGetTrucks() {
 
         Set<Truck> trucks = truckService.getTrucks();
@@ -362,28 +471,6 @@ public class TruckServiceTest {
         truck.setAlcoholic(alcoholic);
 
         return truck;
-    }
-
-    private Set<TruckGarage> mockGetTrucksByGarage(InvocationOnMock iom) {
-
-        Garage garage = iom.getArgument(0);
-
-        if(garage == null) {
-            return new HashSet<>();
-        }
-        else if(!GARAGE_CODE.equals(garage.getCode())) {
-            return new HashSet<>();
-        }
-
-        Set<TruckGarage> garageTrucks = new HashSet<>();
-
-        TruckGarage alcoholicTG = createTruckGarage(garage, alcoholic);
-        TruckGarage nonalcoholicTG = createTruckGarage(garage, nonalcoholic);
-
-        garageTrucks.add(alcoholicTG);
-        garageTrucks.add(nonalcoholicTG);
-
-        return garageTrucks;
     }
 
     private TruckGarage createTruckGarage(Garage garage, Truck truck) {

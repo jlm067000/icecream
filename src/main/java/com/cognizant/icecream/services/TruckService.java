@@ -2,6 +2,7 @@ package com.cognizant.icecream.services;
 
 import com.cognizant.icecream.clients.GarageCRUD;
 import com.cognizant.icecream.clients.TruckCRUD;
+import com.cognizant.icecream.clients.TruckDeploymentClient;
 import com.cognizant.icecream.clients.TruckPurchasingClient;
 import com.cognizant.icecream.models.*;
 import com.cognizant.icecream.pools.api.ResultPool;
@@ -15,12 +16,17 @@ import java.util.*;
 @Service
 public class TruckService {
 
-    private static final String VERIFY_ADD = "Verify that it was added and not REMOVED.";
+    private static final String VERIFY_ADD = "Verify that it was added and not subsequently removed.";
     private static final String NOT_FOUND = "Could not find truck of VIN %s. " + VERIFY_ADD;
     private static final String COULD_NOT_ADD = "Could not add truck of VIN %s.";
     private static final String COULD_NOT_UPDATE = "Could not update truck of VIN %s. " + VERIFY_ADD;
     private static final String COULD_NOT_PURCHASE = "Failed to process Purchase Order. " +
-            "                       Contact Accounting Department for more information";
+            "                       Contact Accounting Department for more information.";
+    private static final String PREEXISTING_TRUCK = "Could not process Purchase Order because truck of VIN %s " +
+                                    "has already been purchased.";
+    private static final String INVALID_GARAGE = "Garage with code %s does not exist.";
+    private static final String NONEXISTENT_TRUCK = "Could not find truck with VIN %s.";
+    private static final String COULD_NOT_PATROL = "Could not order patrol. Verify that this patrol is not in progress.";
 
     private static final Result REMOVED;
 
@@ -29,6 +35,7 @@ public class TruckService {
     private GarageCRUD garageCRUD;
     private TruckCRUD truckCRUD;
     private TruckPurchasingClient purchasingClient;
+    private TruckDeploymentClient deploymentClient;
     private ResultPool resultPool;
     private ServiceResultPool<Truck> serviceResultPool;
     private ServiceResultPool<Invoice> invoiceResultPool;
@@ -45,6 +52,7 @@ public class TruckService {
             GarageCRUD garageCRUD,
             TruckCRUD truckCRUD,
             TruckPurchasingClient purchasingClient,
+            TruckDeploymentClient deploymentClient,
             ResultPool resultPool,
             ServiceResultPool<Truck> serviceResultPool,
             ServiceResultPool<Invoice> invoiceResultPool
@@ -53,6 +61,7 @@ public class TruckService {
         this.garageCRUD = garageCRUD;
         this.truckCRUD = truckCRUD;
         this.purchasingClient = purchasingClient;
+        this.deploymentClient = deploymentClient;
         this.resultPool = resultPool;
         this.serviceResultPool = serviceResultPool;
         this.invoiceResultPool = invoiceResultPool;
@@ -95,22 +104,61 @@ public class TruckService {
     public <T> T purchaseTrucks(
             String authorization,
             TruckPurchaseOrder order,
-            ServiceResultProcessor<Invoice, T> resultProcessor)
-    {
+            ServiceResultProcessor<Invoice, T> resultProcessor
+    ) {
+
+        Truck preexisting = findPreexisting(order.getTrucks());
+
+        if(preexisting != null) {
+            return processPurchaseError(PREEXISTING_TRUCK, preexisting.getVin(), resultProcessor);
+        }
+
+        if(!validate(order.getGarage())) {
+            return processPurchaseError(INVALID_GARAGE, order.getGarage().getCode(), resultProcessor);
+        }
 
         Optional<Invoice> invoice = purchasingClient.purchaseTrucks(order);
 
         return ServicesUtil.processOptional(invoice, COULD_NOT_PURCHASE, invoiceResultPool, resultProcessor);
     }
 
-    public Result deploy(TruckGarage truckGarage) {
+    private <T> T processPurchaseError(String formatErrStr, Object formatArg, ServiceResultProcessor<Invoice, T> resultProcessor) {
 
-        return ResultFactory.createResult(true, "deployed");
+        String errMsg = String.format(formatErrStr, formatArg);
+        ServiceResult<Invoice> result = ServicesUtil.createResult(false, errMsg, null, invoiceResultPool);
+
+        return resultProcessor.apply(result);
     }
 
-    public Result patrol(boolean alcoholic, Neighborhood neighborhood) {
+    public <T> T deploy(TruckGarage truckGarage, ResultProcessor<T> resultProcessor) {
 
-        return ResultFactory.createResult(true, "patrol");
+        if(!checkPreexisting(truckGarage.getTruck())) {
+            return processResult(NONEXISTENT_TRUCK, truckGarage.getTruck().getVin(), resultProcessor);
+        }
+
+        if(!validate(truckGarage.getGarage())) {
+            return processResult(INVALID_GARAGE, truckGarage.getGarage().getCode(), resultProcessor);
+        }
+
+        Result result = deploymentClient.deployTruck(truckGarage);
+
+        return resultProcessor.apply(result);
+    }
+
+    public <T> T patrol(boolean alcoholic, Neighborhood neighborhood, ResultProcessor<T> resultProcessor) {
+
+        boolean success = deploymentClient.patrol(alcoholic, neighborhood);
+
+        Result result;
+
+        if(success) {
+            result = ResultFactory.createResult(true, "success");
+        }
+        else {
+            result = ResultFactory.createResult(false, COULD_NOT_PATROL);
+        }
+
+        return resultProcessor.apply(result);
     }
 
     public Set<Truck> getTrucks() {
@@ -162,7 +210,45 @@ public class TruckService {
         }
 
         garageCache.put(garageCode, garage.get());
+
         return garage.get();
+    }
+
+    private boolean validate(Garage garage) {
+
+        String garageCode = garage.getCode();
+
+        if(garageCache.containsKey(garageCode)) {
+            return true;
+        }
+
+        Optional<Garage> optional = garageCRUD.findByCode(garageCode);
+
+        if(!optional.isPresent()) {
+            return false;
+        }
+
+        garageCache.put(garageCode, optional.get());
+
+        return true;
+    }
+
+    private Truck findPreexisting(Set<Truck> trucks) {
+
+        for(Truck truck : trucks) {
+
+            if(checkPreexisting(truck)) {
+                return truck;
+            }
+        }
+
+        return null;
+    }
+
+    private boolean checkPreexisting(Truck truck) {
+
+        Optional optional = truckCRUD.findByVIN(truck.getVin());
+        return optional.isPresent();
     }
 
     private Set<Truck> toTruckSet(Set<TruckGarage> garageTrucks) {
@@ -172,5 +258,13 @@ public class TruckService {
         garageTrucks.forEach(gt -> truckSet.add(gt.getTruck()));
 
         return truckSet;
+    }
+
+    private <T> T processResult(String formatErrStr, Object formatArg, ResultProcessor<T> resultProcessor) {
+
+        String errMsg = String.format(formatErrStr, formatArg);
+        Result result = ServicesUtil.createResult(false, errMsg, resultPool);
+
+        return resultProcessor.apply(result);
     }
 }
