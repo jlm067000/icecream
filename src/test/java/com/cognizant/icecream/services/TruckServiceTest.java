@@ -12,6 +12,7 @@ import com.cognizant.icecream.result.Result;
 import com.cognizant.icecream.result.ResultFactory;
 import com.cognizant.icecream.result.ResultProcessor;
 import com.cognizant.icecream.result.ServiceResult;
+import com.cognizant.icecream.util.TruckFactory;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -65,7 +66,7 @@ public class TruckServiceTest {
     @BeforeClass
     public static void init() {
 
-        unpersisted = generateTruck(UNPERSISTED_VIN, true);
+        unpersisted = TruckFactory.createTruck(true, UNPERSISTED_VIN);
         invalid = new Truck();
         validGarage = new Garage();
         validGarage.setCode(GARAGE_CODE);
@@ -95,8 +96,8 @@ public class TruckServiceTest {
 
     private void initializeTestData() {
 
-        alcoholic = generateTruck(ALCOHOLIC_VIN, true);
-        nonalcoholic = generateTruck(NONALCOHOLIC_VIN, false);
+        alcoholic = TruckFactory.createTruck(true, ALCOHOLIC_VIN);
+        nonalcoholic = TruckFactory.createTruck(false, NONALCOHOLIC_VIN);
 
         initializePurchaseOrders();
     }
@@ -468,15 +469,6 @@ public class TruckServiceTest {
 
         assertNotNull(trucks);
         assertTrue(trucks.isEmpty());
-    }
-
-    private static Truck generateTruck(String VIN, boolean alcoholic) {
-
-        Truck truck = new Truck();
-        truck.setVin(VIN);
-        truck.setAlcoholic(alcoholic);
-
-        return truck;
     }
 
     private TruckGarage createTruckGarage(Garage garage, Truck truck) {

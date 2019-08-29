@@ -18,11 +18,6 @@ public class TruckCRUD {
     public TruckCRUD() {
 
         trucks = new HashSet<>();
-
-        Truck truck = new Truck();
-        truck.setVin("1");
-
-        trucks.add(truck);
     }
 
     public Optional<Truck> findByVIN(String vin) {

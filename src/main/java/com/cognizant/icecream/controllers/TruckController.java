@@ -25,6 +25,7 @@ public class TruckController {
     private TruckService service;
     private ServiceResultProcessor<Truck, ResponseEntity<?>> retrievalProcessor;
     private ServiceResultProcessor<Truck, ResponseEntity<?>> addProcessor;
+    private ServiceResultProcessor<Truck, ResponseEntity<?>> updateProcessor;
     private ServiceResultProcessor<Truck, ResponseEntity<?>> defaultProcessor;
     private ServiceResultProcessor<Invoice, ResponseEntity<?>> invoiceProcessor;
     private ServiceResultProcessor<Set<Truck>, ResponseEntity<?>> setRetrievalProcessor;
@@ -39,6 +40,7 @@ public class TruckController {
     private void initialize() {
         retrievalProcessor = createServiceResultProcessor(HttpStatus.OK, HttpStatus.NOT_FOUND);
         addProcessor = createServiceResultProcessor(HttpStatus.CREATED, HttpStatus.OK);
+        updateProcessor = createServiceResultProcessor(HttpStatus.OK, HttpStatus.NOT_FOUND);
         defaultProcessor = createServiceResultProcessor(HttpStatus.OK, HttpStatus.BAD_REQUEST);
         invoiceProcessor = createServiceResultProcessor(HttpStatus.OK, HttpStatus.BAD_REQUEST);
         setRetrievalProcessor = createServiceResultProcessor(HttpStatus.OK, HttpStatus.NOT_FOUND);
@@ -65,7 +67,7 @@ public class TruckController {
             return mismatchResponse;
         }
 
-        return service.updateTruck(truck, defaultProcessor);
+        return service.updateTruck(truck, updateProcessor);
     }
 
     @DeleteMapping("{vin}")

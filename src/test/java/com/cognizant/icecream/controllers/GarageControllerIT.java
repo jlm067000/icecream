@@ -5,8 +5,7 @@ import com.cognizant.icecream.clients.GarageCRUD;
 import com.cognizant.icecream.models.Garage;
 import com.cognizant.icecream.models.TimeSlot;
 import com.cognizant.icecream.result.Result;
-import com.cognizant.icecream.result.ResultObject;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.cognizant.icecream.util.ResultImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -15,17 +14,19 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import java.time.LocalDate;
-import java.time.Period;
 
-import static org.junit.Assert.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static com.cognizant.icecream.util.MockMvcUtil.createPostBuilder;
+import static com.cognizant.icecream.util.MockMvcUtil.createPutBuilder;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -171,6 +172,7 @@ public class GarageControllerIT {
 
         SerializableTimeSlot serializable = new SerializableTimeSlot(futureTime);
         MockHttpServletRequestBuilder builder = createPostBuilder(BASE_URI + PERSISTED_CODE + "/resupply", serializable);
+
         MockHttpServletResponse response = performMvcRequest(builder);
 
         assertEquals(200, response.getStatus());
@@ -180,7 +182,18 @@ public class GarageControllerIT {
 
         assertEquals(400, response.getStatus());
 
-        Result responseBody = mapper.readValue(response.getContentAsString(), Result.class);
+        Result responseBody = mapper.readValue(response.getContentAsString(), ResultImpl.class);
+
+        assertFalse(responseBody.isSuccess());
+
+        serializable = new SerializableTimeSlot(pastTime);
+
+        builder = createPostBuilder(BASE_URI + UNPERSISTED_CODE + "/resupply", serializable);
+        response = performMvcRequest(builder);
+
+        assertEquals(400, response.getStatus());
+
+        responseBody = mapper.readValue(response.getContentAsString(), ResultImpl.class);
 
         assertFalse(responseBody.isSuccess());
     }
@@ -191,26 +204,6 @@ public class GarageControllerIT {
         garage.setCode(code);
 
         return garage;
-    }
-
-    private static <T> MockHttpServletRequestBuilder createPostBuilder(String uri, T object)
-            throws JsonProcessingException
-    {
-
-        return populateContent(post(uri), object);
-    }
-
-    private static <T> MockHttpServletRequestBuilder createPutBuilder(String uri, T object) throws JsonProcessingException {
-
-        return populateContent(put(uri), object);
-    }
-
-    private static <T> MockHttpServletRequestBuilder populateContent(MockHttpServletRequestBuilder builder, T object)
-                    throws JsonProcessingException
-    {
-        byte[] serialized = mapper.writeValueAsBytes(object);
-
-        return builder.contentType(MediaType.APPLICATION_JSON).content(serialized);
     }
 
     private MockHttpServletResponse performMvcGet(String uri) throws Exception {
@@ -250,5 +243,4 @@ public class GarageControllerIT {
             this.hour = hour;
         }
     }
-
 }
