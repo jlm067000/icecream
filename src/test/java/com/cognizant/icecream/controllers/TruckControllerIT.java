@@ -3,8 +3,10 @@ package com.cognizant.icecream.controllers;
 import com.cognizant.icecream.clients.GarageCRUD;
 import com.cognizant.icecream.clients.TruckCRUD;
 import com.cognizant.icecream.models.*;
-import com.cognizant.icecream.util.MockMvcUtil;
+import com.cognizant.icecream.result.Result;
+import com.cognizant.icecream.util.ResultImpl;
 import com.cognizant.icecream.util.TruckFactory;
+import com.cognizant.icecream.util.TruckGarageFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -18,15 +20,16 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static com.cognizant.icecream.util.MockMvcUtil.createPostBuilder;
+import static com.cognizant.icecream.util.MockMvcUtil.createPutBuilder;
+import static org.junit.Assert.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-
-import static com.cognizant.icecream.util.MockMvcUtil.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -49,6 +52,9 @@ public class TruckControllerIT {
 
     private static Garage validGarage;
     private static Garage invalidGarage;
+
+    private static TruckGarage alcoholicTG;
+    private static TruckGarage nonalcoholicTG;
 
     private static Neighborhood neighborhood;
 
@@ -78,6 +84,8 @@ public class TruckControllerIT {
         validGarage.setCode(GARAGE_CODE);
         invalidGarage = new Garage();
         invalidGarage.setCode(INVALID_CODE);
+        alcoholicTG = TruckGarageFactory.createTruckGarage(validGarage, alcoholic);
+        nonalcoholicTG = TruckGarageFactory.createTruckGarage(validGarage, nonalcoholic);
         neighborhood = new Neighborhood();
         dontcare = new Object();
 
@@ -88,10 +96,15 @@ public class TruckControllerIT {
     public void setup() {
 
         truckCRUD.add(alcoholic);
+        truckCRUD.update(alcoholic);
         truckCRUD.add(nonalcoholic);
+        truckCRUD.update(nonalcoholic);
         truckCRUD.remove(UNPERSISTED_VIN);
 
         garageCRUD.add(validGarage);
+        garageCRUD.add(alcoholicTG);
+        garageCRUD.add(nonalcoholicTG);
+
         garageCRUD.remove(UNPERSISTED_VIN);
     }
 
@@ -218,8 +231,178 @@ public class TruckControllerIT {
 
         assertEquals(200, response.getStatus());
 
-        Set<Truck> responseBody = MAPPER.readValue(response.getContentAsString(), Set.class);
+        List<Truck> trucks = getObjectList(response, Truck[].class);
+
+        assertNotNull(trucks);
+        assertEquals(2, trucks.size());
+        assertTrue(trucks.contains(alcoholic));
+        assertTrue(trucks.contains(nonalcoholic));
+    }
+
+    @Test
+    public void testGetTrucksByGarage() throws Exception {
+
+        MockHttpServletResponse response = mvc.perform(get(BASE_URI + "garage/" + GARAGE_CODE))
+                                              .andReturn()
+                                              .getResponse();
+
+        assertEquals(200, response.getStatus());
+
+        List<Truck> trucks = getObjectList(response, Truck[].class);
+
+        assertNotNull(trucks);
+        assertEquals(2, trucks.size());
+        assertTrue(trucks.contains(alcoholic));
+        assertTrue(trucks.contains(nonalcoholic));
+
+        response = mvc.perform(get(BASE_URI + "garage/" + INVALID_CODE)).andReturn().getResponse();
+
+        assertEquals(200, response.getStatus());
+
+        Truck[] truckArr = MAPPER.readValue(response.getContentAsString(), Truck[].class);
+
+        assertEquals(0, truckArr.length);
+    }
+
+    @Test
+    public void testGetAllByAlcoholic() throws Exception {
+
+        MockHttpServletResponse response = mvc.perform(get(BASE_URI + "/alcoholic")).andReturn().getResponse();
+
+        assertEquals(200, response.getStatus());
+
+        List<Truck> trucks = getObjectList(response, Truck[].class);
+
+        assertEquals(1, trucks.size());
+        assertTrue(trucks.contains(alcoholic));
+
+        response = mvc.perform(get(BASE_URI + "/nonalcoholic")).andReturn().getResponse();
+
+        assertEquals(200, response.getStatus());
+
+        trucks = getObjectList(response, Truck[].class);
+
+        assertEquals(1, trucks.size());
+        assertTrue(trucks.contains(nonalcoholic));
+    }
+
+    @Test
+    public void testGetAllByCodeAndAlcoholic() throws Exception {
+
+        MockHttpServletResponse response = mvc.perform(get(BASE_URI + "/garage/" + GARAGE_CODE + "/alcoholic"))
+                                              .andReturn()
+                                              .getResponse();
+
+        assertEquals(200, response.getStatus());
+
+        List<Truck> trucks = getObjectList(response, Truck[].class);
+
+        assertEquals(1, trucks.size());
+        assertTrue(trucks.contains(alcoholic));
+
+        response = mvc.perform(get(BASE_URI + "/garage/" + INVALID_CODE + "/alcoholic")).andReturn().getResponse();
+
+        assertEquals(200, response.getStatus());
+
+        Truck[] truckArr = MAPPER.readValue(response.getContentAsString(), Truck[].class);
+
+        assertEquals(0, truckArr.length);
+
+        response = mvc.perform(get(BASE_URI + "/garage/" + GARAGE_CODE + "/nonalcoholic")).andReturn().getResponse();
+
+        assertEquals(200, response.getStatus());
+
+        trucks = getObjectList(response, Truck[].class);
+
+        assertEquals(1, trucks.size());
+        assertTrue(trucks.contains(nonalcoholic));
+
+        response = mvc.perform(get(BASE_URI + "/garage/" + INVALID_CODE + "/nonalcoholic")).andReturn().getResponse();
+
+        assertEquals(200, response.getStatus());
+
+        truckArr = MAPPER.readValue(response.getContentAsString(), Truck[].class);
+
+        assertEquals(0, truckArr.length);
+    }
+
+    @Test
+    public void testPurchaseTrucks() throws Exception {
+
+        MockHttpServletRequestBuilder builder = createPostBuilder(BASE_URI + "/purchase/", validOrder);
+        builder.header("Authorization", "");
+
+        MockHttpServletResponse response = mvc.perform(builder).andReturn().getResponse();
+
+        assertEquals(200, response.getStatus());
+
+        Invoice responseBody = MAPPER.readValue(response.getContentAsString(), Invoice.class);
 
         assertNotNull(responseBody);
+
+        builder = createPostBuilder(BASE_URI + "/purchase/", invalidGarageOrder);
+        builder.header("Authorization", "");
+
+        response = mvc.perform(builder).andReturn().getResponse();
+
+        assertEquals(400, response.getStatus());
+
+        builder = createPostBuilder(BASE_URI + "/purchase/", existingTrucksOrder);
+        builder.header("Authorization", "");
+
+        response = mvc.perform(builder).andReturn().getResponse();
+
+        assertEquals(400, response.getStatus());
+    }
+
+    @Test
+    public void testDeployTruck() throws Exception {
+
+        TruckGarage truckGarage = new TruckGarage();
+
+        MockHttpServletRequestBuilder builder = createPostBuilder(BASE_URI + "/deploy/", truckGarage);
+        MockHttpServletResponse response = mvc.perform(builder).andReturn().getResponse();
+
+        assertEquals(400, response.getStatus());
+
+        truckGarage.setGarage(validGarage);
+        truckGarage.setTruck(alcoholic);
+
+        builder = createPostBuilder(BASE_URI + "/deploy/", truckGarage);
+        response = mvc.perform(builder).andReturn().getResponse();
+
+        assertEquals(200, response.getStatus());
+
+        Result result = MAPPER.readValue(response.getContentAsString(), ResultImpl.class);
+
+        assertTrue(result.isSuccess());
+
+        truckGarage.setGarage(invalidGarage);
+
+        builder = createPostBuilder(BASE_URI + "/deploy/", truckGarage);
+        response = mvc.perform(builder).andReturn().getResponse();
+
+        assertEquals(400, response.getStatus());
+
+        truckGarage.setTruck(unpersisted);
+
+        builder = createPostBuilder(BASE_URI + "/deploy/", truckGarage);
+        response = mvc.perform(builder).andReturn().getResponse();
+
+        assertEquals(400, response.getStatus());
+
+        truckGarage.setGarage(validGarage);
+
+        builder = createPostBuilder(BASE_URI + "/deploy/", truckGarage);
+        response = mvc.perform(builder).andReturn().getResponse();
+
+        assertEquals(400, response.getStatus());
+    }
+
+    private static <T> List<T> getObjectList(MockHttpServletResponse response, Class<T[]> clazz) throws Exception {
+
+        T[] arr = MAPPER.readValue(response.getContentAsString(), clazz);
+
+        return Arrays.asList(arr);
     }
 }

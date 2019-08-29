@@ -27,6 +27,7 @@ public class TruckService {
     private static final String INVALID_GARAGE = "Garage with code %s does not exist.";
     private static final String NONEXISTENT_TRUCK = "Could not find truck with VIN %s.";
     private static final String COULD_NOT_PATROL = "Could not order patrol. Verify that this patrol is not in progress.";
+    private static final String ALREADY_DEPLOYED = "Truck of VIN %s has already been deployed to Garage %s";
 
     private static final Result REMOVED;
 
@@ -96,9 +97,12 @@ public class TruckService {
             return resultProcessor.apply(REMOVED);
         }
 
-        Result result = ServicesUtil.createResult(false, "Could not remove Truck: " + vin, resultPool);
+        MutableResult result = ServicesUtil.createResult(false, "Could not remove Truck: " + vin, resultPool);
 
-        return resultProcessor.apply(result);
+        T processed = resultProcessor.apply(result);
+        resultPool.returnObject(result);
+
+        return processed;
     }
 
     public <T> T purchaseTrucks(
@@ -138,6 +142,17 @@ public class TruckService {
 
         if(!validate(truckGarage.getGarage())) {
             return processResult(INVALID_GARAGE, truckGarage.getGarage().getCode(), resultProcessor);
+        }
+
+        if(alreadyDeployed(truckGarage)) {
+            String errMsg = String.format(ALREADY_DEPLOYED, truckGarage.getTruck().getVin(), truckGarage.getGarage().getCode());
+            MutableResult result = ServicesUtil.createResult(false, errMsg, resultPool);
+
+            T processed = resultProcessor.apply(result);
+
+            resultPool.returnObject(result);
+
+            return processed;
         }
 
         Result result = deploymentClient.deployTruck(truckGarage);
@@ -258,6 +273,17 @@ public class TruckService {
         garageTrucks.forEach(gt -> truckSet.add(gt.getTruck()));
 
         return truckSet;
+    }
+
+    private boolean alreadyDeployed(TruckGarage truckGarage) {
+
+        Optional<TruckGarage> current = garageCRUD.findTruckGarageByTruck(truckGarage.getTruck());
+
+        if(!current.isPresent()) {
+            return false;
+        }
+
+        return current.get().equals(truckGarage);
     }
 
     private <T> T processResult(String formatErrStr, Object formatArg, ResultProcessor<T> resultProcessor) {

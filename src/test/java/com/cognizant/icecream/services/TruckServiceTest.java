@@ -13,6 +13,7 @@ import com.cognizant.icecream.result.ResultFactory;
 import com.cognizant.icecream.result.ResultProcessor;
 import com.cognizant.icecream.result.ServiceResult;
 import com.cognizant.icecream.util.TruckFactory;
+import com.cognizant.icecream.util.TruckGarageFactory;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -162,8 +163,8 @@ public class TruckServiceTest {
 
         Set<TruckGarage> garageTrucks = new HashSet<>();
 
-        TruckGarage alcoholicTG = createTruckGarage(garage, alcoholic);
-        TruckGarage nonalcoholicTG = createTruckGarage(garage, nonalcoholic);
+        TruckGarage alcoholicTG = TruckGarageFactory.createTruckGarage(garage, alcoholic);
+        TruckGarage nonalcoholicTG = TruckGarageFactory.createTruckGarage(garage, nonalcoholic);
 
         garageTrucks.add(alcoholicTG);
         garageTrucks.add(nonalcoholicTG);
@@ -471,12 +472,5 @@ public class TruckServiceTest {
         assertTrue(trucks.isEmpty());
     }
 
-    private TruckGarage createTruckGarage(Garage garage, Truck truck) {
 
-        TruckGarage truckGarage = new TruckGarage();
-        truckGarage.setGarage(garage);
-        truckGarage.setTruck(truck);
-
-        return truckGarage;
-    }
 }

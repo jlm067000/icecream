@@ -24,7 +24,7 @@ class GarageCRUDFactory {
         when(garageCRUD.remove(newGarage.getCode())).thenReturn(false);
 
         Answer<Optional<Garage>> adder = iom -> mockAdd(iom, persisted, newGarage);
-        when(garageCRUD.add(any())).then(adder);
+        when(garageCRUD.add(any(Garage.class))).then(adder);
 
         Answer<Optional<Garage>> updater = iom -> mockUpdate(iom, persisted);
         when(garageCRUD.update(any())).then(updater);

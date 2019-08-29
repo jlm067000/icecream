@@ -21,21 +21,7 @@ public class GarageCRUD {
     public GarageCRUD() {
 
         garages = new HashSet<>();
-
-        Garage garage = new Garage();
-        garage.setCode("12");
-
-        garages.add(garage);
-
         truckGarages = new HashSet<>();
-
-        Truck truck = new Truck();
-        truck.setVin("1");
-        TruckGarage truckGarage = new TruckGarage();
-        truckGarage.setTruck(truck);
-        truckGarage.setGarage(garage);
-
-        truckGarages.add(truckGarage);
     }
 
     public Optional<Garage> findByCode(String code) {
@@ -61,6 +47,16 @@ public class GarageCRUD {
 
         garages.add(clone(garage));
         return Optional.of(garage);
+    }
+
+    public Optional<TruckGarage> add(TruckGarage truckGarage) {
+
+        if(truckGarages.contains(truckGarage)) {
+            return Optional.empty();
+        }
+
+        truckGarages.add(clone(truckGarage));
+        return Optional.of(truckGarage);
     }
 
     public Optional<Garage> update(final Garage garage) {
@@ -90,6 +86,14 @@ public class GarageCRUD {
                            .filter(tg -> Objects.equals(tg.getGarage(), garage))
                            .map(GarageCRUD::clone)
                            .collect(Collectors.toSet());
+    }
+
+    public Optional<TruckGarage> findTruckGarageByTruck(Truck truck) {
+
+        return truckGarages.stream()
+                           .filter(tg -> Objects.equals(tg.getTruck(), truck))
+                           .map(GarageCRUD::clone)
+                           .findFirst();
     }
 
     private static Garage clone(Garage garage) {
