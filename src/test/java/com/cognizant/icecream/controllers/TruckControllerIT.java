@@ -3,8 +3,6 @@ package com.cognizant.icecream.controllers;
 import com.cognizant.icecream.clients.GarageCRUD;
 import com.cognizant.icecream.clients.TruckCRUD;
 import com.cognizant.icecream.models.*;
-import com.cognizant.icecream.result.Result;
-import com.cognizant.icecream.util.ResultImpl;
 import com.cognizant.icecream.util.TruckFactory;
 import com.cognizant.icecream.util.TruckGarageFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,6 +40,7 @@ public class TruckControllerIT {
     private static final String ALCOHOLIC_VIN = "13";
     private static final String NONALCOHOLIC_VIN = "12";
     private static final String UNPERSISTED_VIN = "11";
+    private static final String ALTERNATE_CODE = "13";
     private static final String GARAGE_CODE = "12";
     private static final String INVALID_CODE = "11";
 
@@ -50,7 +49,8 @@ public class TruckControllerIT {
     private static Truck alcoholic;
     private static Truck nonalcoholic;
 
-    private static Garage validGarage;
+    private static Garage alternateGarage;
+    private static Garage defaultGarage;
     private static Garage invalidGarage;
 
     private static TruckGarage alcoholicTG;
@@ -80,12 +80,14 @@ public class TruckControllerIT {
         nonalcoholic = TruckFactory.createTruck(false, NONALCOHOLIC_VIN);
         unpersisted = TruckFactory.createTruck(true, UNPERSISTED_VIN);
         invalid = new Truck();
-        validGarage = new Garage();
-        validGarage.setCode(GARAGE_CODE);
+        alternateGarage = new Garage();
+        alternateGarage.setCode(ALTERNATE_CODE);
+        defaultGarage = new Garage();
+        defaultGarage.setCode(GARAGE_CODE);
         invalidGarage = new Garage();
         invalidGarage.setCode(INVALID_CODE);
-        alcoholicTG = TruckGarageFactory.createTruckGarage(validGarage, alcoholic);
-        nonalcoholicTG = TruckGarageFactory.createTruckGarage(validGarage, nonalcoholic);
+        alcoholicTG = TruckGarageFactory.createTruckGarage(defaultGarage, alcoholic);
+        nonalcoholicTG = TruckGarageFactory.createTruckGarage(defaultGarage, nonalcoholic);
         neighborhood = new Neighborhood();
         dontcare = new Object();
 
@@ -101,7 +103,8 @@ public class TruckControllerIT {
         truckCRUD.update(nonalcoholic);
         truckCRUD.remove(UNPERSISTED_VIN);
 
-        garageCRUD.add(validGarage);
+        garageCRUD.add(alternateGarage);
+        garageCRUD.add(defaultGarage);
         garageCRUD.add(alcoholicTG);
         garageCRUD.add(nonalcoholicTG);
 
@@ -120,7 +123,7 @@ public class TruckControllerIT {
         PaymentDetails details = new PaymentDetails();
 
         validOrder = new TruckPurchaseOrder();
-        validOrder.setGarage(validGarage);
+        validOrder.setGarage(defaultGarage);
         validOrder.setTrucks(newTrucks);
         validOrder.setPaymentDetails(details);
 
@@ -130,7 +133,7 @@ public class TruckControllerIT {
         invalidGarageOrder.setPaymentDetails(details);
 
         existingTrucksOrder = new TruckPurchaseOrder();
-        existingTrucksOrder.setGarage(validGarage);
+        existingTrucksOrder.setGarage(defaultGarage);
         existingTrucksOrder.setTrucks(existing);
         existingTrucksOrder.setPaymentDetails(details);
     }
@@ -365,17 +368,20 @@ public class TruckControllerIT {
 
         assertEquals(400, response.getStatus());
 
-        truckGarage.setGarage(validGarage);
+        truckGarage.setGarage(defaultGarage);
         truckGarage.setTruck(alcoholic);
 
         builder = createPostBuilder(BASE_URI + "/deploy/", truckGarage);
         response = mvc.perform(builder).andReturn().getResponse();
 
+        assertEquals(400, response.getStatus());
+
+        truckGarage.setGarage(alternateGarage);
+
+        builder = createPostBuilder(BASE_URI + "/deploy/", truckGarage);
+        response = mvc.perform(builder).andReturn().getResponse();
+
         assertEquals(200, response.getStatus());
-
-        Result result = MAPPER.readValue(response.getContentAsString(), ResultImpl.class);
-
-        assertTrue(result.isSuccess());
 
         truckGarage.setGarage(invalidGarage);
 
@@ -391,12 +397,28 @@ public class TruckControllerIT {
 
         assertEquals(400, response.getStatus());
 
-        truckGarage.setGarage(validGarage);
+        truckGarage.setGarage(alternateGarage);
 
         builder = createPostBuilder(BASE_URI + "/deploy/", truckGarage);
         response = mvc.perform(builder).andReturn().getResponse();
 
         assertEquals(400, response.getStatus());
+    }
+
+    @Test
+    public void testPatrol() throws Exception {
+
+        Neighborhood neighborhood = new Neighborhood();
+
+        MockHttpServletRequestBuilder builder = createPostBuilder(BASE_URI + "patrol?alcoholic=true", neighborhood);
+        MockHttpServletResponse response = mvc.perform(builder).andReturn().getResponse();
+
+        assertEquals(200, response.getStatus());
+
+        builder = createPostBuilder(BASE_URI + "patrol?alcoholic=false", neighborhood);
+        response = mvc.perform(builder).andReturn().getResponse();
+
+        assertEquals(200, response.getStatus());
     }
 
     private static <T> List<T> getObjectList(MockHttpServletResponse response, Class<T[]> clazz) throws Exception {

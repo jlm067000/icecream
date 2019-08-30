@@ -99,10 +99,7 @@ public class TruckService {
 
         MutableResult result = ServicesUtil.createResult(false, "Could not remove Truck: " + vin, resultPool);
 
-        T processed = resultProcessor.apply(result);
-        resultPool.returnObject(result);
-
-        return processed;
+        return ServicesUtil.processResult(result, resultProcessor, resultPool);
     }
 
     public <T> T purchaseTrucks(
@@ -129,9 +126,9 @@ public class TruckService {
     private <T> T processPurchaseError(String formatErrStr, Object formatArg, ServiceResultProcessor<Invoice, T> resultProcessor) {
 
         String errMsg = String.format(formatErrStr, formatArg);
-        ServiceResult<Invoice> result = ServicesUtil.createResult(false, errMsg, null, invoiceResultPool);
+        MutableServiceResult<Invoice> result = ServicesUtil.createResult(false, errMsg, null, invoiceResultPool);
 
-        return resultProcessor.apply(result);
+        return ServicesUtil.processResult(result, resultProcessor, invoiceResultPool);
     }
 
     public <T> T deploy(TruckGarage truckGarage, ResultProcessor<T> resultProcessor) {
@@ -148,11 +145,7 @@ public class TruckService {
             String errMsg = String.format(ALREADY_DEPLOYED, truckGarage.getTruck().getVin(), truckGarage.getGarage().getCode());
             MutableResult result = ServicesUtil.createResult(false, errMsg, resultPool);
 
-            T processed = resultProcessor.apply(result);
-
-            resultPool.returnObject(result);
-
-            return processed;
+            return ServicesUtil.processResult(result, resultProcessor, resultPool);
         }
 
         Result result = deploymentClient.deployTruck(truckGarage);
@@ -289,8 +282,8 @@ public class TruckService {
     private <T> T processResult(String formatErrStr, Object formatArg, ResultProcessor<T> resultProcessor) {
 
         String errMsg = String.format(formatErrStr, formatArg);
-        Result result = ServicesUtil.createResult(false, errMsg, resultPool);
+        MutableResult result = ServicesUtil.createResult(false, errMsg, resultPool);
 
-        return resultProcessor.apply(result);
+        return ServicesUtil.processResult(result, resultProcessor, resultPool);
     }
 }

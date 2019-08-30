@@ -1,13 +1,12 @@
 package com.cognizant.icecream.services;
 
+import com.cognizant.icecream.pools.api.LocalObjectPool;
 import com.cognizant.icecream.pools.api.ResultPool;
 import com.cognizant.icecream.pools.api.ServiceResultPool;
-import com.cognizant.icecream.result.MutableResult;
-import com.cognizant.icecream.result.MutableServiceResult;
-import com.cognizant.icecream.result.ResultFactory;
-import com.cognizant.icecream.result.ServiceResultProcessor;
+import com.cognizant.icecream.result.*;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 class ServicesUtil {
 
@@ -29,6 +28,26 @@ class ServicesUtil {
         catch(Exception ex) {
             return ResultFactory.createMutableResult(success, message);
         }
+    }
+
+    static <T> T processResult(MutableResult result, ResultProcessor<T> resultProcessor, ResultPool pool) {
+
+        T processed = resultProcessor.apply(result);
+        pool.returnObject(result);
+
+        return processed;
+    }
+
+    static <T,U> T processResult(
+            MutableServiceResult<U> result,
+            ServiceResultProcessor<U,T> resultProcessor,
+            ServiceResultPool<U> pool
+    ) {
+
+        T processed = resultProcessor.apply(result);
+        pool.returnObject(result);
+
+        return processed;
     }
 
     static <T,U> T processOptional(

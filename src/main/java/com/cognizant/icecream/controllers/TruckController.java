@@ -138,7 +138,7 @@ public class TruckController {
     }
 
     @PostMapping("patrol")
-    public ResponseEntity<Result> patrolAlcoholic(@RequestParam boolean alcoholic, @RequestBody Neighborhood neighborhood) {
+    public ResponseEntity<Result> patrol(@RequestParam("alcoholic") boolean alcoholic, @RequestBody Neighborhood neighborhood) {
 
         return service.patrol(alcoholic, neighborhood, ResultProcessorFactory.DEFAULT_PROCESSOR);
     }
