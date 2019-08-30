@@ -1,12 +1,10 @@
 package com.cognizant.icecream.services;
 
-import com.cognizant.icecream.pools.api.LocalObjectPool;
 import com.cognizant.icecream.pools.api.ResultPool;
 import com.cognizant.icecream.pools.api.ServiceResultPool;
 import com.cognizant.icecream.result.*;
 
 import java.util.Optional;
-import java.util.function.Function;
 
 class ServicesUtil {
 
@@ -30,26 +28,6 @@ class ServicesUtil {
         }
     }
 
-    static <T> T processResult(MutableResult result, ResultProcessor<T> resultProcessor, ResultPool pool) {
-
-        T processed = resultProcessor.apply(result);
-        pool.returnObject(result);
-
-        return processed;
-    }
-
-    static <T,U> T processResult(
-            MutableServiceResult<U> result,
-            ServiceResultProcessor<U,T> resultProcessor,
-            ServiceResultPool<U> pool
-    ) {
-
-        T processed = resultProcessor.apply(result);
-        pool.returnObject(result);
-
-        return processed;
-    }
-
     static <T,U> T processOptional(
             Optional<U> optional,
             String errMsg,
@@ -58,7 +36,7 @@ class ServicesUtil {
     ) {
         MutableServiceResult<U> result = processOptional(optional, errMsg, pool);
 
-        return processResult(result, pool, resultProcessor);
+        return processResult(result, resultProcessor, pool);
     }
 
     private static <U> MutableServiceResult<U> processOptional(Optional<U> optional, String errMsg, ServiceResultPool<U> pool) {
@@ -80,7 +58,7 @@ class ServicesUtil {
     ) {
         MutableServiceResult<U> result = processOptional(optional, formatErrStr, formatArg, pool);
 
-        return processResult(result, pool, resultProcessor);
+        return processResult(result, resultProcessor, pool);
     }
 
     private static <U> MutableServiceResult<U> processOptional(
@@ -99,10 +77,18 @@ class ServicesUtil {
         }
     }
 
-    private static <T,U> T processResult(
+    static <T> T processResult(MutableResult result, ResultProcessor<T> resultProcessor, ResultPool pool) {
+
+        T processed = resultProcessor.apply(result);
+        pool.returnObject(result);
+
+        return processed;
+    }
+
+    static <T,U> T processResult(
             MutableServiceResult<U> result,
-            ServiceResultPool<U> pool,
-            ServiceResultProcessor<U,T> resultProcessor
+            ServiceResultProcessor<U,T> resultProcessor,
+            ServiceResultPool<U> pool
     ) {
 
         T processed = resultProcessor.apply(result);

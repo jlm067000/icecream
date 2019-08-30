@@ -29,6 +29,11 @@ public class TruckPurchasingClient {
         this.truckCRUD = truckCRUD;
     }
 
+    public Optional<Invoice> purchaseTrucks(String authorization, TruckPurchaseOrder tpo) {
+
+        return purchaseTrucks(tpo);
+    }
+
     public Optional<Invoice> purchaseTrucks(TruckPurchaseOrder tpo) {
 
         Garage garage = tpo.getGarage();

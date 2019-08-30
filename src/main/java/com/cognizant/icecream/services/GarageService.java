@@ -7,10 +7,7 @@ import com.cognizant.icecream.models.Garage;
 import com.cognizant.icecream.models.TimeSlot;
 import com.cognizant.icecream.pools.api.ResultPool;
 import com.cognizant.icecream.pools.api.ServiceResultPool;
-import com.cognizant.icecream.result.Result;
-import com.cognizant.icecream.result.ResultFactory;
-import com.cognizant.icecream.result.ResultProcessor;
-import com.cognizant.icecream.result.ServiceResultProcessor;
+import com.cognizant.icecream.result.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -55,21 +52,23 @@ public class GarageService {
         this.resultPool = resultPool;
     }
 
-    public Result resupply(String garageCode, TimeSlot timeSlot) {
+    public <T> T resupply(String authorization, String garageCode, TimeSlot timeSlot, ResultProcessor<T> resultProcessor) {
 
-        if(!timeClient.isValid(timeSlot)) {
-            return FUTURE;
+        if(!timeClient.isValid(authorization, timeSlot)) {
+            return resultProcessor.apply(FUTURE);
         }
 
-        if(!garageCRUD.findByCode(garageCode).isPresent()) {
+        if(!garageCRUD.findByCode(authorization, garageCode).isPresent()) {
 
             String errMsg = String.format(NOT_FOUND, garageCode);
-            return ServicesUtil.createResult(false, errMsg, resultPool);
+            MutableResult result = ServicesUtil.createResult(false, errMsg, resultPool);
+
+            return ServicesUtil.processResult(result, resultProcessor, resultPool);
         }
 
-        boolean success = supplyClient.scheduleResupply(garageCode, timeSlot);
+        boolean success = supplyClient.scheduleResupply(authorization, garageCode, timeSlot);
 
-        return success ? SCHEDULED : COULD_NOT_RESUPPLY;
+        return success ? resultProcessor.apply(SCHEDULED) : resultProcessor.apply(COULD_NOT_RESUPPLY);
     }
 
     public <T> T getGarage(String garageCode, ServiceResultProcessor<Garage, T> resultProcessor) {
@@ -101,8 +100,9 @@ public class GarageService {
             return resultProcessor.apply(REMOVED);
         }
 
-        Result result = ServicesUtil.createResult(false, "Could not remove Garage: " + garageCode, resultPool);
+        MutableResult result =
+                ServicesUtil.createResult(false, "Could not remove Garage: " + garageCode, resultPool);
 
-        return resultProcessor.apply(result);
+        return ServicesUtil.processResult(result, resultProcessor, resultPool);
     }
 }

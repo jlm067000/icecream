@@ -24,6 +24,11 @@ public class GarageCRUD {
         truckGarages = new HashSet<>();
     }
 
+    public Optional<Garage> findByCode(String authorization, String code) {
+
+        return findByCode(code);
+    }
+
     public Optional<Garage> findByCode(String code) {
 
         Garage persisted = garages.stream()
@@ -86,6 +91,11 @@ public class GarageCRUD {
                            .filter(tg -> Objects.equals(tg.getGarage(), garage))
                            .map(GarageCRUD::clone)
                            .collect(Collectors.toSet());
+    }
+
+    public Optional<TruckGarage> findTruckGarageByTruck(String authorization, Truck truck) {
+
+        return findTruckGarageByTruck(truck);
     }
 
     public Optional<TruckGarage> findTruckGarageByTruck(Truck truck) {

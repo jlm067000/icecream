@@ -34,13 +34,15 @@ public class TruckServiceTest {
     private static final String ALCOHOLIC_VIN = "13";
     private static final String NONALCOHOLIC_VIN = "12";
     private static final String UNPERSISTED_VIN = "11";
+    private static final String ALTERNATE_CODE = "13";
     private static final String GARAGE_CODE = "12";
     private static final String INVALID_CODE = "11";
 
     private static Truck unpersisted;
     private static Truck invalid;
 
-    private static Garage validGarage;
+    private static Garage alternateGarage;
+    private static Garage defaultGarage;
     private static Garage invalidGarage;
 
     private static Neighborhood neighborhood;
@@ -69,8 +71,10 @@ public class TruckServiceTest {
 
         unpersisted = TruckFactory.createTruck(true, UNPERSISTED_VIN);
         invalid = new Truck();
-        validGarage = new Garage();
-        validGarage.setCode(GARAGE_CODE);
+        alternateGarage = new Garage();
+        alternateGarage.setCode(ALTERNATE_CODE);
+        defaultGarage = new Garage();
+        defaultGarage.setCode(GARAGE_CODE);
         invalidGarage = new Garage();
         invalidGarage.setCode(INVALID_CODE);
         neighborhood = new Neighborhood();
@@ -115,7 +119,7 @@ public class TruckServiceTest {
         PaymentDetails details = new PaymentDetails();
 
         validOrder = new TruckPurchaseOrder();
-        validOrder.setGarage(validGarage);
+        validOrder.setGarage(defaultGarage);
         validOrder.setTrucks(newTrucks);
         validOrder.setPaymentDetails(details);
 
@@ -125,7 +129,7 @@ public class TruckServiceTest {
         invalidGarageOrder.setPaymentDetails(details);
 
         existingTrucksOrder = new TruckPurchaseOrder();
-        existingTrucksOrder.setGarage(validGarage);
+        existingTrucksOrder.setGarage(defaultGarage);
         existingTrucksOrder.setTrucks(existing);
         existingTrucksOrder.setPaymentDetails(details);
     }
@@ -135,15 +139,19 @@ public class TruckServiceTest {
         garageCRUD = Mockito.mock(GarageCRUD.class);
 
         when(garageCRUD.findAllByGarage(any())).then(this::mockGetTrucksByGarage);
-        when(garageCRUD.findByCode(GARAGE_CODE)).then(this::mockGetGarage);
+        when(garageCRUD.findTruckGarageByTruck(any(), any())).then(this::mockGetTruckGarageByTruck);
+        when(garageCRUD.findByCode(any(), any())).then(this::mockGetGarage);
     }
 
     private Optional<Garage> mockGetGarage(InvocationOnMock iom) {
 
-        String garageCode = iom.getArgument(0);
+        String garageCode = iom.getArgument(1);
 
         if(GARAGE_CODE.equals(garageCode)) {
-            return Optional.of(validGarage);
+            return Optional.of(defaultGarage);
+        }
+        else if(ALTERNATE_CODE.equals(garageCode)) {
+            return Optional.of(alternateGarage);
         }
         else {
             return Optional.empty();
@@ -172,6 +180,23 @@ public class TruckServiceTest {
         return garageTrucks;
     }
 
+    private Optional<TruckGarage> mockGetTruckGarageByTruck(InvocationOnMock iom) {
+
+        Truck truck = iom.getArgument(1);
+
+        if(alcoholic.equals(truck) || nonalcoholic.equals(truck)) {
+
+            TruckGarage truckGarage = new TruckGarage();
+            truckGarage.setGarage(defaultGarage);
+            truckGarage.setTruck(truck);
+
+            return Optional.of(truckGarage);
+        }
+        else {
+            return Optional.empty();
+        }
+    }
+
     private void mockPurchasingClient() {
 
         Invoice invoice = new Invoice();
@@ -187,7 +212,7 @@ public class TruckServiceTest {
 
         Result result = ResultFactory.createResult(true, "");
         deploymentClient = Mockito.mock(TruckDeploymentClient.class);
-        when(deploymentClient.deployTruck(any())).thenReturn(result);
+        when(deploymentClient.deployTruck(any(), any())).thenReturn(result);
         when(deploymentClient.patrol(true, neighborhood)).thenReturn(true);
         when(deploymentClient.patrol(false, neighborhood)).thenReturn(true);
     }
@@ -340,36 +365,43 @@ public class TruckServiceTest {
 
         TruckGarage truckGarage = new TruckGarage();
 
-        ResultProcessor<Object> resultProcessor = r -> testDeployValidTruckGarage(r, truckGarage);
+        ResultProcessor<Object> resultProcessor = r -> testDeployInvalidTruckGarage(r, truckGarage);
 
         truckGarage.setTruck(alcoholic);
-        truckGarage.setGarage(validGarage);
+        truckGarage.setGarage(defaultGarage);
 
-        truckService.deploy(truckGarage, resultProcessor);
+        truckService.deploy("", truckGarage, resultProcessor);
+
+        resultProcessor = r -> testDeployValidTruckGarage(r, truckGarage);
+
+        truckGarage.setTruck(alcoholic);
+        truckGarage.setGarage(alternateGarage);
+
+        truckService.deploy("", truckGarage, resultProcessor);
 
         resultProcessor = r -> testDeployInvalidTruckGarage(r, truckGarage);
 
         truckGarage.setTruck(unpersisted);
-        truckGarage.setGarage(validGarage);
+        truckGarage.setGarage(defaultGarage);
 
-        truckService.deploy(truckGarage, resultProcessor);
+        truckService.deploy("", truckGarage, resultProcessor);
 
         truckGarage.setTruck(alcoholic);
         truckGarage.setGarage(invalidGarage);
 
-        truckService.deploy(truckGarage, resultProcessor);
+        truckService.deploy("", truckGarage, resultProcessor);
 
         truckGarage.setTruck(unpersisted);
         truckGarage.setGarage(invalidGarage);
 
-        truckService.deploy(truckGarage, resultProcessor);
+        truckService.deploy("", truckGarage, resultProcessor);
     }
 
     private Object testDeployValidTruckGarage(Result result, TruckGarage truckGarage) {
 
         assertNotNull(result);
         assertTrue(result.isSuccess());
-        verify(deploymentClient).deployTruck(truckGarage);
+        verify(deploymentClient).deployTruck("", truckGarage);
 
         return dontcare;
     }

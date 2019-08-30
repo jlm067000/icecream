@@ -20,6 +20,11 @@ public class TruckDeploymentClient {
     }
 
 
+    public Result deployTruck(String authorization, TruckGarage truckGarage) {
+
+        return deployTruck(truckGarage);
+    }
+
     public Result deployTruck(TruckGarage truckGarage) {
 
         if(alreadyDeployed(truckGarage)) {

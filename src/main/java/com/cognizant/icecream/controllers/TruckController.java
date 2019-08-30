@@ -132,9 +132,12 @@ public class TruckController {
     }
 
     @PostMapping("deploy")
-    public ResponseEntity<Result> deploy(@Valid @RequestBody TruckGarage truckGarage) {
+    public ResponseEntity<Result> deploy(
+                                    @RequestHeader("Authorization") String authorization,
+                                    @Valid @RequestBody TruckGarage truckGarage
+    ) {
 
-        return service.deploy(truckGarage, ResultProcessorFactory.DEFAULT_PROCESSOR);
+        return service.deploy(authorization, truckGarage, ResultProcessorFactory.DEFAULT_PROCESSOR);
     }
 
     @PostMapping("patrol")

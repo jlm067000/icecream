@@ -18,6 +18,11 @@ public class SupplyClient {
         this.garageCRUD = garageCRUD;
     }
 
+    public boolean scheduleResupply(String authorization, String code, TimeSlot timeSlot) {
+
+        return scheduleResupply(code, timeSlot);
+    }
+
     public boolean scheduleResupply(String code, TimeSlot timeSlot) {
 
         if(garageCRUD.findByCode(code).isEmpty()) {

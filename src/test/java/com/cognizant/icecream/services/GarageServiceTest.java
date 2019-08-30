@@ -81,15 +81,23 @@ public class GarageServiceTest {
     @Test
     public void testResupply() {
 
-        Result result = garageService.resupply(PERSISTED_CODE, futureTime);
+        garageService.resupply("", PERSISTED_CODE, futureTime, this::testValidResupply);
+        garageService.resupply("", UNPERSISTED_CODE, futureTime, this::testInvalidResupply);
+        garageService.resupply("", PERSISTED_CODE, pastTime, this::testInvalidResupply);
+    }
+
+    private Object testValidResupply(Result result) {
+
         assertTrue(result.isSuccess());
         verify(supplyClient).scheduleResupply(PERSISTED_CODE, futureTime);
 
-        result = garageService.resupply(UNPERSISTED_CODE, futureTime);
-        assertFalse(result.isSuccess());
+        return dontcare;
+    }
 
-        result = garageService.resupply(PERSISTED_CODE, pastTime);
+    private Object testInvalidResupply(Result result) {
+
         assertFalse(result.isSuccess());
+        return dontcare;
     }
 
     @Test

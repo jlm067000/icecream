@@ -9,6 +9,10 @@ import java.time.LocalDateTime;
 @Service
 public class TimeClient {
 
+    public boolean isValid(String authorization, TimeSlot timeSlot) {
+        return futureTime(timeSlot.getDate(), timeSlot.getHour());
+    }
+
     public boolean isValid(TimeSlot timeSlot) {
         return futureTime(timeSlot.getDate(), timeSlot.getHour());
     }

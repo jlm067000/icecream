@@ -20,6 +20,11 @@ public class TruckCRUD {
         trucks = new HashSet<>();
     }
 
+    public Optional<Truck> findByVIN(String authorization, String vin) {
+
+        return findByVIN(vin);
+    }
+
     public Optional<Truck> findByVIN(String vin) {
 
         Truck persisted = trucks.stream()

@@ -73,7 +73,6 @@ public class TruckService {
     public <T> T getTruck(String vin, ServiceResultProcessor<Truck, T> resultProcessor) {
 
         Optional<Truck> truck = truckCRUD.findByVIN(vin);
-
         return ServicesUtil.processOptional(truck, NOT_FOUND, vin, serviceResultPool, resultProcessor);
     }
 
@@ -108,17 +107,17 @@ public class TruckService {
             ServiceResultProcessor<Invoice, T> resultProcessor
     ) {
 
-        Truck preexisting = findPreexisting(order.getTrucks());
+        Truck preexisting = findPreexisting(authorization, order.getTrucks());
 
         if(preexisting != null) {
             return processPurchaseError(PREEXISTING_TRUCK, preexisting.getVin(), resultProcessor);
         }
 
-        if(!validate(order.getGarage())) {
+        if(!validate(authorization, order.getGarage())) {
             return processPurchaseError(INVALID_GARAGE, order.getGarage().getCode(), resultProcessor);
         }
 
-        Optional<Invoice> invoice = purchasingClient.purchaseTrucks(order);
+        Optional<Invoice> invoice = purchasingClient.purchaseTrucks(authorization, order);
 
         return ServicesUtil.processOptional(invoice, COULD_NOT_PURCHASE, invoiceResultPool, resultProcessor);
     }
@@ -131,24 +130,24 @@ public class TruckService {
         return ServicesUtil.processResult(result, resultProcessor, invoiceResultPool);
     }
 
-    public <T> T deploy(TruckGarage truckGarage, ResultProcessor<T> resultProcessor) {
+    public <T> T deploy(String authorization, TruckGarage truckGarage, ResultProcessor<T> resultProcessor) {
 
-        if(!checkPreexisting(truckGarage.getTruck())) {
+        if(!checkPreexisting(authorization, truckGarage.getTruck())) {
             return processResult(NONEXISTENT_TRUCK, truckGarage.getTruck().getVin(), resultProcessor);
         }
 
-        if(!validate(truckGarage.getGarage())) {
+        if(!validate(authorization, truckGarage.getGarage())) {
             return processResult(INVALID_GARAGE, truckGarage.getGarage().getCode(), resultProcessor);
         }
 
-        if(alreadyDeployed(truckGarage)) {
+        if(alreadyDeployed(authorization, truckGarage)) {
             String errMsg = String.format(ALREADY_DEPLOYED, truckGarage.getTruck().getVin(), truckGarage.getGarage().getCode());
             MutableResult result = ServicesUtil.createResult(false, errMsg, resultPool);
 
             return ServicesUtil.processResult(result, resultProcessor, resultPool);
         }
 
-        Result result = deploymentClient.deployTruck(truckGarage);
+        Result result = deploymentClient.deployTruck(authorization, truckGarage);
 
         return resultProcessor.apply(result);
     }
@@ -157,16 +156,16 @@ public class TruckService {
 
         boolean success = deploymentClient.patrol(alcoholic, neighborhood);
 
-        Result result;
+        MutableResult result;
 
         if(success) {
-            result = ResultFactory.createResult(true, "success");
+            result = ServicesUtil.createResult(true, "success", resultPool);
         }
         else {
-            result = ResultFactory.createResult(false, COULD_NOT_PATROL);
+            result = ServicesUtil.createResult(false, COULD_NOT_PATROL, resultPool);
         }
 
-        return resultProcessor.apply(result);
+        return ServicesUtil.processResult(result, resultProcessor, resultPool);
     }
 
     public Set<Truck> getTrucks() {
@@ -222,7 +221,7 @@ public class TruckService {
         return garage.get();
     }
 
-    private boolean validate(Garage garage) {
+    private boolean validate(String authorization, Garage garage) {
 
         String garageCode = garage.getCode();
 
@@ -230,7 +229,7 @@ public class TruckService {
             return true;
         }
 
-        Optional<Garage> optional = garageCRUD.findByCode(garageCode);
+        Optional<Garage> optional = garageCRUD.findByCode(authorization, garageCode);
 
         if(!optional.isPresent()) {
             return false;
@@ -241,11 +240,11 @@ public class TruckService {
         return true;
     }
 
-    private Truck findPreexisting(Set<Truck> trucks) {
+    private Truck findPreexisting(String authorization, Set<Truck> trucks) {
 
         for(Truck truck : trucks) {
 
-            if(checkPreexisting(truck)) {
+            if(checkPreexisting(authorization, truck)) {
                 return truck;
             }
         }
@@ -253,9 +252,9 @@ public class TruckService {
         return null;
     }
 
-    private boolean checkPreexisting(Truck truck) {
+    private boolean checkPreexisting(String authorization, Truck truck) {
 
-        Optional optional = truckCRUD.findByVIN(truck.getVin());
+        Optional optional = truckCRUD.findByVIN(authorization, truck.getVin());
         return optional.isPresent();
     }
 
@@ -268,9 +267,9 @@ public class TruckService {
         return truckSet;
     }
 
-    private boolean alreadyDeployed(TruckGarage truckGarage) {
+    private boolean alreadyDeployed(String authorization, TruckGarage truckGarage) {
 
-        Optional<TruckGarage> current = garageCRUD.findTruckGarageByTruck(truckGarage.getTruck());
+        Optional<TruckGarage> current = garageCRUD.findTruckGarageByTruck(authorization, truckGarage.getTruck());
 
         if(!current.isPresent()) {
             return false;
