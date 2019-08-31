@@ -3,10 +3,11 @@ package com.cognizant.icecream.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 public class MockMvcUtil {
 
@@ -14,6 +15,13 @@ public class MockMvcUtil {
 
     static {
         MAPPER = new ObjectMapper();
+    }
+
+    public static MockHttpServletResponse performGetWithAuthorization(MockMvc mvc, String uri) throws Exception {
+
+        MockHttpServletRequestBuilder builder = get(uri).header("Authorization", "");
+
+        return mvc.perform(builder).andReturn().getResponse();
     }
 
     public static <T> MockHttpServletRequestBuilder createPostBuilder(String uri, T object)

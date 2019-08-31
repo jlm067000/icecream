@@ -173,15 +173,15 @@ public class TruckService {
         return truckCRUD.findAll();
     }
 
-    public Set<Truck> getTrucks(String garageCode) {
+    public Set<Truck> getTrucks(String authorization, String garageCode) {
 
-        Garage garage = getGarage(garageCode);
+        Garage garage = getGarage(authorization, garageCode);
 
         if(garage == null) {
             return EMPTY_SET;
         }
 
-        Set<TruckGarage> garageTrucks = garageCRUD.findAllByGarage(garage);
+        Set<TruckGarage> garageTrucks = garageCRUD.findAllByGarage(authorization, garage);
 
         return toTruckSet(garageTrucks);
     }
@@ -195,22 +195,22 @@ public class TruckService {
         return trucks;
     }
 
-    public Set<Truck> getTrucks(String garageCode, boolean alcoholic) {
+    public Set<Truck> getTrucks(String authorization, String garageCode, boolean alcoholic) {
 
-        Set<Truck> trucks = getTrucks(garageCode);
+        Set<Truck> trucks = getTrucks(authorization, garageCode);
 
         trucks.removeIf(t -> t.isAlcoholic() ^ alcoholic);
 
         return trucks;
     }
 
-    private Garage getGarage(String garageCode) {
+    private Garage getGarage(String authorization, String garageCode) {
 
         if(garageCache.containsKey(garageCode)) {
             return garageCache.get(garageCode);
         }
 
-        Optional<Garage> garage = garageCRUD.findByCode(garageCode);
+        Optional<Garage> garage = garageCRUD.findByCode(authorization, garageCode);
 
         if(!garage.isPresent()) {
             return null;

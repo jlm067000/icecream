@@ -172,12 +172,14 @@ public class GarageControllerIT {
 
         SerializableTimeSlot serializable = new SerializableTimeSlot(futureTime);
         MockHttpServletRequestBuilder builder = createPostBuilder(BASE_URI + PERSISTED_CODE + "/resupply", serializable);
+        builder.header("Authorization", "");
 
         MockHttpServletResponse response = performMvcRequest(builder);
 
         assertEquals(200, response.getStatus());
 
         builder = createPostBuilder(BASE_URI + UNPERSISTED_CODE + "/resupply", serializable);
+        builder.header("Authorization", "");
         response = performMvcRequest(builder);
 
         assertEquals(400, response.getStatus());
@@ -189,6 +191,7 @@ public class GarageControllerIT {
         serializable = new SerializableTimeSlot(pastTime);
 
         builder = createPostBuilder(BASE_URI + UNPERSISTED_CODE + "/resupply", serializable);
+        builder.header("Authorization", "");
         response = performMvcRequest(builder);
 
         assertEquals(400, response.getStatus());

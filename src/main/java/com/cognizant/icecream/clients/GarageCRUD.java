@@ -93,6 +93,11 @@ public class GarageCRUD {
                            .collect(Collectors.toSet());
     }
 
+    public Set<TruckGarage> findAllByGarage(String authorization, Garage garage) {
+
+        return findAllByGarage(garage);
+    }
+
     public Optional<TruckGarage> findTruckGarageByTruck(String authorization, Truck truck) {
 
         return findTruckGarageByTruck(truck);

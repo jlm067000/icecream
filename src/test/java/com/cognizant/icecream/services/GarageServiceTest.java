@@ -68,12 +68,12 @@ public class GarageServiceTest {
         resultPool = MockFactory.createResultPool();
 
         supplyClient = Mockito.mock(SupplyClient.class);
-        when(supplyClient.scheduleResupply(any(), any())).thenReturn(true);
+        when(supplyClient.scheduleResupply(any(), any(), any())).thenReturn(true);
 
         timeClient = Mockito.mock(TimeClient.class);
 
-        when(timeClient.isValid(futureTime)).thenReturn(true);
-        when(timeClient.isValid(pastTime)).thenReturn(false);
+        when(timeClient.isValid("", futureTime)).thenReturn(true);
+        when(timeClient.isValid("", pastTime)).thenReturn(false);
 
         garageService = new GarageService(garageCRUD, supplyClient, timeClient, serviceResultPool, resultPool);
     }
@@ -89,7 +89,7 @@ public class GarageServiceTest {
     private Object testValidResupply(Result result) {
 
         assertTrue(result.isSuccess());
-        verify(supplyClient).scheduleResupply(PERSISTED_CODE, futureTime);
+        verify(supplyClient).scheduleResupply("", PERSISTED_CODE, futureTime);
 
         return dontcare;
     }

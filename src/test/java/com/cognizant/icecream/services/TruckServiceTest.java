@@ -138,7 +138,7 @@ public class TruckServiceTest {
 
         garageCRUD = Mockito.mock(GarageCRUD.class);
 
-        when(garageCRUD.findAllByGarage(any())).then(this::mockGetTrucksByGarage);
+        when(garageCRUD.findAllByGarage(any(), any())).then(this::mockGetTrucksByGarage);
         when(garageCRUD.findTruckGarageByTruck(any(), any())).then(this::mockGetTruckGarageByTruck);
         when(garageCRUD.findByCode(any(), any())).then(this::mockGetGarage);
     }
@@ -160,7 +160,7 @@ public class TruckServiceTest {
 
     private Set<TruckGarage> mockGetTrucksByGarage(InvocationOnMock iom) {
 
-        Garage garage = iom.getArgument(0);
+        Garage garage = iom.getArgument(1);
 
         if(garage == null) {
             return new HashSet<>();
@@ -203,9 +203,9 @@ public class TruckServiceTest {
 
         purchasingClient = Mockito.mock(TruckPurchasingClient.class);
 
-        when(purchasingClient.purchaseTrucks(validOrder)).thenReturn(Optional.of(invoice));
-        when(purchasingClient.purchaseTrucks(invalidGarageOrder)).thenReturn(Optional.empty());
-        when(purchasingClient.purchaseTrucks(existingTrucksOrder)).thenReturn(Optional.empty());
+        when(purchasingClient.purchaseTrucks("", validOrder)).thenReturn(Optional.of(invoice));
+        when(purchasingClient.purchaseTrucks("", invalidGarageOrder)).thenReturn(Optional.empty());
+        when(purchasingClient.purchaseTrucks("", existingTrucksOrder)).thenReturn(Optional.empty());
     }
 
     private void mockDeploymentClient() {
@@ -449,15 +449,15 @@ public class TruckServiceTest {
     @Test
     public void testGetTrucksByGarageCode() {
 
-        Set<Truck> trucks = truckService.getTrucks(GARAGE_CODE);
+        Set<Truck> trucks = truckService.getTrucks("", GARAGE_CODE);
 
         assertNotNull(trucks);
         assertEquals(2, trucks.size());
         assertTrue(trucks.contains(alcoholic));
         assertTrue(trucks.contains(nonalcoholic));
-        verify(garageCRUD).findAllByGarage(any());
+        verify(garageCRUD).findAllByGarage(any(), any());
 
-        trucks = truckService.getTrucks(INVALID_CODE);
+        trucks = truckService.getTrucks("", INVALID_CODE);
         assertNotNull(trucks);
         assertTrue(trucks.isEmpty());
     }
@@ -481,24 +481,24 @@ public class TruckServiceTest {
     @Test
     public void testGetAllByCodeAndAlcoholic() {
 
-        Set<Truck> trucks = truckService.getTrucks(GARAGE_CODE,true);
+        Set<Truck> trucks = truckService.getTrucks("", GARAGE_CODE,true);
 
         assertNotNull(trucks);
         assertEquals(1, trucks.size());
         assertTrue(trucks.contains(alcoholic));
 
-        trucks = truckService.getTrucks(GARAGE_CODE,false);
+        trucks = truckService.getTrucks("", GARAGE_CODE,false);
 
         assertNotNull(trucks);
         assertEquals(1, trucks.size());
         assertTrue(trucks.contains(nonalcoholic));
 
-        trucks = truckService.getTrucks(INVALID_CODE,true);
+        trucks = truckService.getTrucks("", INVALID_CODE,true);
 
         assertNotNull(trucks);
         assertTrue(trucks.isEmpty());
 
-        trucks = truckService.getTrucks(INVALID_CODE,false);
+        trucks = truckService.getTrucks("", INVALID_CODE,false);
 
         assertNotNull(trucks);
         assertTrue(trucks.isEmpty());

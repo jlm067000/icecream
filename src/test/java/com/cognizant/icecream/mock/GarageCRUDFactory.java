@@ -18,7 +18,9 @@ class GarageCRUDFactory {
 
         GarageCRUD garageCRUD = Mockito.mock(GarageCRUD.class);
         when(garageCRUD.findByCode(persisted.getCode())).thenReturn(Optional.of(persisted));
+        when(garageCRUD.findByCode("", persisted.getCode())).thenReturn(Optional.of(persisted));
         when(garageCRUD.findByCode(newGarage.getCode())).thenReturn(Optional.empty());
+        when(garageCRUD.findByCode("", newGarage.getCode())).thenReturn(Optional.empty());
 
         when(garageCRUD.remove(persisted.getCode())).thenReturn(true);
         when(garageCRUD.remove(newGarage.getCode())).thenReturn(false);

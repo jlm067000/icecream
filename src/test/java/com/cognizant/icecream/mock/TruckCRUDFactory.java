@@ -18,8 +18,11 @@ public class TruckCRUDFactory {
     static TruckCRUD createMock(Truck alcoholic, Truck nonalcoholic, Truck newTruck) {
 
         TruckCRUD truckCRUD = Mockito.mock(TruckCRUD.class);
+        when(truckCRUD.findByVIN(alcoholic.getVin())).thenReturn(Optional.of(alcoholic));
         when(truckCRUD.findByVIN("", alcoholic.getVin())).thenReturn(Optional.of(alcoholic));
+        when(truckCRUD.findByVIN(nonalcoholic.getVin())).thenReturn(Optional.of(alcoholic));
         when(truckCRUD.findByVIN("", nonalcoholic.getVin())).thenReturn(Optional.of(alcoholic));
+        when(truckCRUD.findByVIN(newTruck.getVin())).thenReturn(Optional.empty());
         when(truckCRUD.findByVIN("", newTruck.getVin())).thenReturn(Optional.empty());
 
         when(truckCRUD.remove(alcoholic.getVin())).thenReturn(true);

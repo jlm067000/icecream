@@ -91,23 +91,29 @@ public class TruckController {
     }
 
     @GetMapping("garage/{code}")
-    public ResponseEntity<Set<Truck>> getTrucks(@PathVariable("code") String garageCode) {
-
-        Set<Truck> trucks = service.getTrucks(garageCode);
+    public ResponseEntity<Set<Truck>> getTrucks(
+            @RequestHeader("Authorization") String authorization,
+            @PathVariable("code") String garageCode
+    ) {
+        Set<Truck> trucks = service.getTrucks(authorization, garageCode);
         return new ResponseEntity<>(trucks, HttpStatus.OK);
     }
 
     @GetMapping("garage/{code}/alcoholic")
-    public ResponseEntity<Set<Truck>> getAlcoholicTrucks(@PathVariable("code") String garageCode) {
-
-        Set<Truck> trucks = service.getTrucks(garageCode, true);
+    public ResponseEntity<Set<Truck>> getAlcoholicTrucks(
+                                            @RequestHeader("Authorization") String authorization,
+                                            @PathVariable("code") String garageCode
+    ) {
+        Set<Truck> trucks = service.getTrucks(authorization, garageCode, true);
         return new ResponseEntity<>(trucks, HttpStatus.OK);
     }
 
     @GetMapping("garage/{code}/nonalcoholic")
-    public ResponseEntity<Set<Truck>> getNonAlcoholicTrucks(@PathVariable("code") String garageCode) {
-
-        Set<Truck> trucks = service.getTrucks(garageCode, false);
+    public ResponseEntity<Set<Truck>> getNonAlcoholicTrucks(
+                                        @RequestHeader("Authorization") String authorization,
+                                        @PathVariable("code") String garageCode
+    ) {
+        Set<Truck> trucks = service.getTrucks(authorization, garageCode, false);
         return new ResponseEntity<>(trucks, HttpStatus.OK);
     }
 
