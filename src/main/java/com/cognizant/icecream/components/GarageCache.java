@@ -12,47 +12,31 @@ import java.util.Optional;
 @Component
 public class GarageCache {
 
-    private Map<String, Garage> garageCache;
-    private GarageCRUD garageCRUD;
+    private GarageCRUD crud;
+    private Map<String, Garage> cache;
 
     @Autowired
-    public GarageCache(GarageCRUD garageCRUD) {
-        this.garageCache = new HashMap<>();
-        this.garageCRUD = garageCRUD;
-    }
+    public GarageCache(GarageCRUD crud) {
 
-    public Garage getGarage(String authorization, String garageCode) {
-
-        if(garageCache.containsKey(garageCode)) {
-            return garageCache.get(garageCode);
-        }
-
-        Optional<Garage> garage = garageCRUD.findByCode(authorization, garageCode);
-
-        if(!garage.isPresent()) {
-            return null;
-        }
-
-        garageCache.put(garageCode, garage.get());
-
-        return garage.get();
+        this.crud = crud;
+        this.cache = new HashMap<>();
     }
 
     public boolean validate(String authorization, Garage garage) {
 
         String garageCode = garage.getCode();
 
-        if(garageCache.containsKey(garageCode)) {
+        if(cache.containsKey(garageCode)) {
             return true;
         }
 
-        Optional<Garage> optional = garageCRUD.findByCode(authorization, garageCode);
+        Optional<Garage> optional = crud.findByCode(authorization, garageCode);
 
         if(!optional.isPresent()) {
             return false;
         }
 
-        garageCache.put(garageCode, optional.get());
+        cache.put(garageCode, optional.get());
 
         return true;
     }
