@@ -4,6 +4,7 @@ import com.cognizant.icecream.clients.GarageCRUD;
 import com.cognizant.icecream.clients.TruckCRUD;
 import com.cognizant.icecream.clients.TruckDeploymentClient;
 import com.cognizant.icecream.clients.TruckPurchasingClient;
+import com.cognizant.icecream.component.GarageCache;
 import com.cognizant.icecream.models.*;
 import com.cognizant.icecream.pools.api.ResultPool;
 import com.cognizant.icecream.pools.api.ServiceResultPool;
@@ -34,14 +35,13 @@ public class TruckService {
     private static final Set<Truck> EMPTY_SET;
 
     private GarageCRUD garageCRUD;
+    private GarageCache garageCache;
     private TruckCRUD truckCRUD;
     private TruckPurchasingClient purchasingClient;
     private TruckDeploymentClient deploymentClient;
     private ResultPool resultPool;
     private ServiceResultPool<Truck> serviceResultPool;
     private ServiceResultPool<Invoice> invoiceResultPool;
-
-    private Map<String, Garage> garageCache;
 
     static {
         REMOVED = ResultFactory.createResult(true, "REMOVED");
@@ -51,6 +51,7 @@ public class TruckService {
     @Autowired
     public TruckService(
             GarageCRUD garageCRUD,
+            GarageCache garageCache,
             TruckCRUD truckCRUD,
             TruckPurchasingClient purchasingClient,
             TruckDeploymentClient deploymentClient,
@@ -60,14 +61,13 @@ public class TruckService {
     ) {
 
         this.garageCRUD = garageCRUD;
+        this.garageCache = garageCache;
         this.truckCRUD = truckCRUD;
         this.purchasingClient = purchasingClient;
         this.deploymentClient = deploymentClient;
         this.resultPool = resultPool;
         this.serviceResultPool = serviceResultPool;
         this.invoiceResultPool = invoiceResultPool;
-
-        this.garageCache = new HashMap<>();
     }
 
     public <T> T getTruck(String vin, ServiceResultProcessor<Truck, T> resultProcessor) {
@@ -113,7 +113,7 @@ public class TruckService {
             return processPurchaseError(PREEXISTING_TRUCK, preexisting.getVin(), resultProcessor);
         }
 
-        if(!validate(authorization, order.getGarage())) {
+        if(!garageCache.validate(authorization, order.getGarage())) {
             return processPurchaseError(INVALID_GARAGE, order.getGarage().getCode(), resultProcessor);
         }
 
@@ -136,7 +136,7 @@ public class TruckService {
             return processResult(NONEXISTENT_TRUCK, truckGarage.getTruck().getVin(), resultProcessor);
         }
 
-        if(!validate(authorization, truckGarage.getGarage())) {
+        if(!garageCache.validate(authorization, truckGarage.getGarage())) {
             return processResult(INVALID_GARAGE, truckGarage.getGarage().getCode(), resultProcessor);
         }
 
@@ -175,7 +175,7 @@ public class TruckService {
 
     public Set<Truck> getTrucks(String authorization, String garageCode) {
 
-        Garage garage = getGarage(authorization, garageCode);
+        Garage garage = garageCache.getGarage(authorization, garageCode);
 
         if(garage == null) {
             return EMPTY_SET;
@@ -202,42 +202,6 @@ public class TruckService {
         trucks.removeIf(t -> t.isAlcoholic() ^ alcoholic);
 
         return trucks;
-    }
-
-    private Garage getGarage(String authorization, String garageCode) {
-
-        if(garageCache.containsKey(garageCode)) {
-            return garageCache.get(garageCode);
-        }
-
-        Optional<Garage> garage = garageCRUD.findByCode(authorization, garageCode);
-
-        if(!garage.isPresent()) {
-            return null;
-        }
-
-        garageCache.put(garageCode, garage.get());
-
-        return garage.get();
-    }
-
-    private boolean validate(String authorization, Garage garage) {
-
-        String garageCode = garage.getCode();
-
-        if(garageCache.containsKey(garageCode)) {
-            return true;
-        }
-
-        Optional<Garage> optional = garageCRUD.findByCode(authorization, garageCode);
-
-        if(!optional.isPresent()) {
-            return false;
-        }
-
-        garageCache.put(garageCode, optional.get());
-
-        return true;
     }
 
     private Truck findPreexisting(String authorization, Set<Truck> trucks) {
