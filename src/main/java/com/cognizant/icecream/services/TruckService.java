@@ -4,7 +4,7 @@ import com.cognizant.icecream.clients.GarageCRUD;
 import com.cognizant.icecream.clients.TruckCRUD;
 import com.cognizant.icecream.clients.TruckDeploymentClient;
 import com.cognizant.icecream.clients.TruckPurchasingClient;
-import com.cognizant.icecream.component.GarageCache;
+import com.cognizant.icecream.components.GarageCache;
 import com.cognizant.icecream.models.*;
 import com.cognizant.icecream.pools.api.ResultPool;
 import com.cognizant.icecream.pools.api.ServiceResultPool;

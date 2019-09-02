@@ -1,4 +1,4 @@
-package com.cognizant.icecream.component;
+package com.cognizant.icecream.components;
 
 import com.cognizant.icecream.clients.GarageCRUD;
 import com.cognizant.icecream.models.Garage;
