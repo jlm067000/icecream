@@ -22,6 +22,23 @@ public class GarageCache {
         this.cache = new HashMap<>();
     }
 
+    public Garage getGarage(String authorization, String garageCode) {
+
+        if(cache.containsKey(garageCode)) {
+            return cache.get(garageCode);
+        }
+
+        Optional<Garage> garage = crud.findByCode(authorization, garageCode);
+
+        if(!garage.isPresent()) {
+            return null;
+        }
+
+        cache.put(garageCode, garage.get());
+
+        return garage.get();
+    }
+
     public boolean validate(String authorization, Garage garage) {
 
         String garageCode = garage.getCode();

@@ -35,7 +35,7 @@ public class TrucksFilter {
 
     public Set<Truck> getTrucks(String authorization, String garageCode) {
 
-        Garage garage = getGarage(authorization, garageCode);
+        Garage garage = garageCache.getGarage(authorization, garageCode);
 
         if(garage == null) {
             return EMPTY_SET;
@@ -71,22 +71,5 @@ public class TrucksFilter {
         garageTrucks.forEach(gt -> truckSet.add(gt.getTruck()));
 
         return truckSet;
-    }
-
-    private Garage getGarage(String authorization, String garageCode) {
-
-        if(garageCache.contains(garageCode)) {
-            return garageCache.get(garageCode);
-        }
-
-        Optional<Garage> garage = garageCRUD.findByCode(authorization, garageCode);
-
-        if(!garage.isPresent()) {
-            return null;
-        }
-
-        garageCache.add(garage.get());
-
-        return garage.get();
     }
 }
