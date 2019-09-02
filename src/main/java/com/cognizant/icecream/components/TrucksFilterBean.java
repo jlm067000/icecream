@@ -2,16 +2,19 @@ package com.cognizant.icecream.components;
 
 import com.cognizant.icecream.clients.GarageCRUD;
 import com.cognizant.icecream.clients.TruckCRUD;
+import com.cognizant.icecream.components.api.GarageCache;
+import com.cognizant.icecream.components.api.TrucksFilter;
 import com.cognizant.icecream.models.Garage;
 import com.cognizant.icecream.models.Truck;
 import com.cognizant.icecream.models.TruckGarage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 @Component
-public class TrucksFilter {
+class TrucksFilterBean implements TrucksFilter {
 
     private static final Set<Truck> EMPTY_SET = new HashSet<>();
 
@@ -19,20 +22,21 @@ public class TrucksFilter {
     private GarageCRUD garageCRUD;
     private GarageCache garageCache;
 
-
     @Autowired
-    public TrucksFilter(TruckCRUD truckCRUD, GarageCRUD garageCRUD, GarageCache garageCache) {
+    TrucksFilterBean(TruckCRUD truckCRUD, GarageCRUD garageCRUD, GarageCache garageCache) {
 
         this.truckCRUD = truckCRUD;
         this.garageCRUD = garageCRUD;
         this.garageCache = garageCache;
     }
 
+    @Override
     public Set<Truck> getTrucks() {
 
         return truckCRUD.findAll();
     }
 
+    @Override
     public Set<Truck> getTrucks(String authorization, String garageCode) {
 
         Garage garage = garageCache.getGarage(authorization, garageCode);
@@ -46,6 +50,7 @@ public class TrucksFilter {
         return toTruckSet(garageTrucks);
     }
 
+    @Override
     public Set<Truck> getTrucks(boolean alcoholic) {
 
         Set<Truck> trucks = truckCRUD.findAll();
@@ -55,6 +60,7 @@ public class TrucksFilter {
         return trucks;
     }
 
+    @Override
     public Set<Truck> getTrucks(String authorization, String garageCode, boolean alcoholic) {
 
         Set<Truck> trucks = getTrucks(authorization, garageCode);

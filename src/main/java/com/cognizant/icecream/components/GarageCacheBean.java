@@ -1,6 +1,7 @@
 package com.cognizant.icecream.components;
 
 import com.cognizant.icecream.clients.GarageCRUD;
+import com.cognizant.icecream.components.api.GarageCache;
 import com.cognizant.icecream.models.Garage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -10,18 +11,19 @@ import java.util.Map;
 import java.util.Optional;
 
 @Component
-public class GarageCache {
+class GarageCacheBean implements GarageCache {
 
     private GarageCRUD crud;
     private Map<String, Garage> cache;
 
     @Autowired
-    public GarageCache(GarageCRUD crud) {
+    GarageCacheBean(GarageCRUD crud) {
 
         this.crud = crud;
         this.cache = new HashMap<>();
     }
 
+    @Override
     public Garage getGarage(String authorization, String garageCode) {
 
         if(cache.containsKey(garageCode)) {
@@ -39,6 +41,7 @@ public class GarageCache {
         return garage.get();
     }
 
+    @Override
     public boolean validate(String authorization, Garage garage) {
 
         String garageCode = garage.getCode();

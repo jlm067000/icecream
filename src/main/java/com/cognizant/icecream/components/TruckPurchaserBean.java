@@ -1,9 +1,9 @@
 package com.cognizant.icecream.components;
 
-import com.cognizant.icecream.clients.GarageCRUD;
-import com.cognizant.icecream.clients.TruckCRUD;
 import com.cognizant.icecream.clients.TruckPurchasingClient;
-import com.cognizant.icecream.models.Garage;
+import com.cognizant.icecream.components.api.GarageCache;
+import com.cognizant.icecream.components.api.TruckCRUDOperator;
+import com.cognizant.icecream.components.api.TruckPurchaser;
 import com.cognizant.icecream.models.Invoice;
 import com.cognizant.icecream.models.Truck;
 import com.cognizant.icecream.models.TruckPurchaseOrder;
@@ -17,7 +17,7 @@ import java.util.Optional;
 import java.util.Set;
 
 @Component
-public class TruckPurchaser {
+class TruckPurchaserBean implements TruckPurchaser {
 
     private static final String COULD_NOT_PURCHASE = "Failed to process Purchase Order. " +
                                     "Contact Accounting Department for more information.";
@@ -31,7 +31,7 @@ public class TruckPurchaser {
     private TruckCRUDOperator crudOperator;
 
     @Autowired
-    public TruckPurchaser(
+    TruckPurchaserBean(
             TruckPurchasingClient purchasingClient,
             ServiceResultPool<Invoice> invoiceResultPool,
             GarageCache garageCache,
@@ -43,6 +43,7 @@ public class TruckPurchaser {
         this.crudOperator = crudOperator;
     }
 
+    @Override
     public <T> T purchaseTrucks(
             String authorization,
             TruckPurchaseOrder order,

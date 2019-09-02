@@ -1,9 +1,9 @@
 package com.cognizant.icecream.services;
 
-import com.cognizant.icecream.components.TruckCRUDOperator;
-import com.cognizant.icecream.components.TruckDeployer;
-import com.cognizant.icecream.components.TruckPurchaser;
-import com.cognizant.icecream.components.TrucksFilter;
+import com.cognizant.icecream.components.api.TruckCRUDOperator;
+import com.cognizant.icecream.components.api.TruckDeployer;
+import com.cognizant.icecream.components.api.TruckPurchaser;
+import com.cognizant.icecream.components.api.TrucksFilter;
 import com.cognizant.icecream.models.*;
 import com.cognizant.icecream.result.ResultProcessor;
 import com.cognizant.icecream.result.ServiceResultProcessor;

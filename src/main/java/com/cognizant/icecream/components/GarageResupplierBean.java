@@ -3,6 +3,7 @@ package com.cognizant.icecream.components;
 import com.cognizant.icecream.clients.GarageCRUD;
 import com.cognizant.icecream.clients.SupplyClient;
 import com.cognizant.icecream.clients.TimeClient;
+import com.cognizant.icecream.components.api.GarageResupplier;
 import com.cognizant.icecream.models.TimeSlot;
 import com.cognizant.icecream.pools.api.ResultPool;
 import com.cognizant.icecream.result.MutableResult;
@@ -13,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class GarageResupplier {
+class GarageResupplierBean implements GarageResupplier {
 
     private static final Result FUTURE;
     private static final Result SCHEDULED;
@@ -32,7 +33,7 @@ public class GarageResupplier {
     }
 
     @Autowired
-    public GarageResupplier(GarageCRUD garageCRUD, SupplyClient supplyClient, TimeClient timeClient, ResultPool resultPool)
+    GarageResupplierBean(GarageCRUD garageCRUD, SupplyClient supplyClient, TimeClient timeClient, ResultPool resultPool)
     {
         this.garageCRUD = garageCRUD;
         this.supplyClient = supplyClient;
@@ -40,6 +41,7 @@ public class GarageResupplier {
         this.resultPool = resultPool;
     }
 
+    @Override
     public <T> T resupply(String authorization, String garageCode, TimeSlot timeSlot, ResultProcessor<T> resultProcessor) {
 
         if(!timeClient.isValid(authorization, timeSlot)) {
@@ -58,5 +60,4 @@ public class GarageResupplier {
 
         return success ? resultProcessor.apply(SCHEDULED) : resultProcessor.apply(COULD_NOT_RESUPPLY);
     }
-
 }

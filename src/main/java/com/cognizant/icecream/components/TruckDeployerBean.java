@@ -2,6 +2,9 @@ package com.cognizant.icecream.components;
 
 import com.cognizant.icecream.clients.GarageCRUD;
 import com.cognizant.icecream.clients.TruckDeploymentClient;
+import com.cognizant.icecream.components.api.GarageCache;
+import com.cognizant.icecream.components.api.TruckCRUDOperator;
+import com.cognizant.icecream.components.api.TruckDeployer;
 import com.cognizant.icecream.models.Neighborhood;
 import com.cognizant.icecream.models.TruckGarage;
 import com.cognizant.icecream.pools.api.ResultPool;
@@ -14,7 +17,7 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 
 @Component
-public class TruckDeployer {
+class TruckDeployerBean implements TruckDeployer {
 
     private static final String NONEXISTENT_TRUCK = "Could not find truck with VIN %s.";
     private static final String COULD_NOT_PATROL = "Could not order patrol. Verify that this patrol is not in progress.";
@@ -28,7 +31,7 @@ public class TruckDeployer {
     private ResultPool pool;
 
     @Autowired
-    public TruckDeployer(
+    TruckDeployerBean(
             GarageCRUD garageCRUD,
             GarageCache garageCache,
             TruckCRUDOperator crudOperator,
@@ -42,6 +45,7 @@ public class TruckDeployer {
         this.pool = pool;
     }
 
+    @Override
     public <T> T deploy(String authorization, TruckGarage truckGarage, ResultProcessor<T> resultProcessor) {
 
         if(!crudOperator.exists(authorization, truckGarage.getTruck())) {
@@ -68,6 +72,7 @@ public class TruckDeployer {
         return resultProcessor.apply(result);
     }
 
+    @Override
     public <T> T patrol(boolean alcoholic, Neighborhood neighborhood, ResultProcessor<T> resultProcessor) {
 
         boolean success = client.patrol(alcoholic, neighborhood);

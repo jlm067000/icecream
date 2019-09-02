@@ -1,7 +1,7 @@
 package com.cognizant.icecream.services;
 
-import com.cognizant.icecream.components.GarageCRUDOperator;
-import com.cognizant.icecream.components.GarageResupplier;
+import com.cognizant.icecream.components.api.GarageCRUDOperator;
+import com.cognizant.icecream.components.api.GarageResupplier;
 import com.cognizant.icecream.models.Garage;
 import com.cognizant.icecream.models.TimeSlot;
 import com.cognizant.icecream.result.ResultProcessor;
