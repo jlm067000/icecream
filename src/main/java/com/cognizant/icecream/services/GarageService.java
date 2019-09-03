@@ -1,11 +1,11 @@
 package com.cognizant.icecream.services;
 
+import com.cognizant.icecream.api.result.ResultProcessor;
+import com.cognizant.icecream.api.result.ServiceResultProcessor;
 import com.cognizant.icecream.components.api.GarageCRUDOperator;
 import com.cognizant.icecream.components.api.GarageResupplier;
-import com.cognizant.icecream.models.Garage;
-import com.cognizant.icecream.models.TimeSlot;
-import com.cognizant.icecream.result.ResultProcessor;
-import com.cognizant.icecream.result.ServiceResultProcessor;
+import com.cognizant.icecream.api.models.Garage;
+import com.cognizant.icecream.api.models.TimeSlot;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

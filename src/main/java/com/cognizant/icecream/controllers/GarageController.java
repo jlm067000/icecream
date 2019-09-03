@@ -1,9 +1,9 @@
 package com.cognizant.icecream.controllers;
 
-import com.cognizant.icecream.models.Garage;
-import com.cognizant.icecream.models.TimeSlot;
-import com.cognizant.icecream.result.Result;
-import com.cognizant.icecream.result.ServiceResultProcessor;
+import com.cognizant.icecream.api.models.Garage;
+import com.cognizant.icecream.api.models.TimeSlot;
+import com.cognizant.icecream.api.result.Result;
+import com.cognizant.icecream.api.result.ServiceResultProcessor;
 import com.cognizant.icecream.services.GarageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

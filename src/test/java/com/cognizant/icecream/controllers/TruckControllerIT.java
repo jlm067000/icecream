@@ -1,8 +1,8 @@
 package com.cognizant.icecream.controllers;
 
-import com.cognizant.icecream.clients.GarageCRUD;
-import com.cognizant.icecream.clients.TruckCRUD;
-import com.cognizant.icecream.models.*;
+import com.cognizant.icecream.components.clients.GarageCRUD;
+import com.cognizant.icecream.components.clients.TruckCRUD;
+import com.cognizant.icecream.api.models.*;
 import com.cognizant.icecream.util.TruckFactory;
 import com.cognizant.icecream.util.TruckGarageFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;

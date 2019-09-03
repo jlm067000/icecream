@@ -11,10 +11,17 @@ sourceCompatibility = '12'
 
 repositories {
 	mavenCentral()
+	flatDir {
+		dirs '.'
+	}
 }
 
 dependencies {
 
+	compile name: 'icecream-api-1.0-SNAPSHOT'
+	compile name: 'icecream-components-api-1.0-SNAPSHOT'
+	compile name: 'icecream-components-1.0-SNAPSHOT'
+	
 	compile("org.springframework.boot:spring-boot-starter-web")
 	compile("org.apache.commons:commons-pool2:2.7.0")
 

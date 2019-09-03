@@ -1,9 +1,9 @@
 package com.cognizant.icecream.controllers;
 
-import com.cognizant.icecream.result.Result;
-import com.cognizant.icecream.result.ResultProcessor;
-import com.cognizant.icecream.result.ServiceResult;
-import com.cognizant.icecream.result.ServiceResultProcessor;
+import com.cognizant.icecream.api.result.Result;
+import com.cognizant.icecream.api.result.ResultProcessor;
+import com.cognizant.icecream.api.result.ServiceResult;
+import com.cognizant.icecream.api.result.ServiceResultProcessor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -23,7 +23,7 @@ public class ResultProcessorFactory {
         return processor;
     }
 
-    static <T> ServiceResultProcessor<T, ResponseEntity<?>> createServiceResultProcessor(HttpStatus successCode,  HttpStatus failCode)
+    static <T> ServiceResultProcessor<T, ResponseEntity<?>> createServiceResultProcessor(HttpStatus successCode, HttpStatus failCode)
     {
         ServiceResultProcessor<T, ResponseEntity<?>> processor = r -> processServiceResult(r, successCode, failCode);
         return processor;

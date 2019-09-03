@@ -1,6 +1,6 @@
 package com.cognizant.icecream.util;
 
-import com.cognizant.icecream.result.Result;
+import com.cognizant.icecream.api.result.Result;
 
 public class ResultImpl implements Result {
 

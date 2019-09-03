@@ -1,8 +1,8 @@
 package com.cognizant.icecream.util;
 
-import com.cognizant.icecream.models.Garage;
-import com.cognizant.icecream.models.Truck;
-import com.cognizant.icecream.models.TruckGarage;
+import com.cognizant.icecream.api.models.Garage;
+import com.cognizant.icecream.api.models.Truck;
+import com.cognizant.icecream.api.models.TruckGarage;
 
 public class TruckGarageFactory {
 

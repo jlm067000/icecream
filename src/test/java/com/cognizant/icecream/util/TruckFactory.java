@@ -1,6 +1,6 @@
 package com.cognizant.icecream.util;
 
-import com.cognizant.icecream.models.Truck;
+import com.cognizant.icecream.api.models.Truck;
 
 public class TruckFactory {
 

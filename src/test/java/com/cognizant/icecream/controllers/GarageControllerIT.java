@@ -1,10 +1,10 @@
 package com.cognizant.icecream.controllers;
 
 
-import com.cognizant.icecream.clients.GarageCRUD;
-import com.cognizant.icecream.models.Garage;
-import com.cognizant.icecream.models.TimeSlot;
-import com.cognizant.icecream.result.Result;
+import com.cognizant.icecream.api.result.Result;
+import com.cognizant.icecream.components.clients.GarageCRUD;
+import com.cognizant.icecream.api.models.Garage;
+import com.cognizant.icecream.api.models.TimeSlot;
 import com.cognizant.icecream.util.ResultImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;

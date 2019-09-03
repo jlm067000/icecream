@@ -1,8 +1,8 @@
 package com.cognizant.icecream.controllers;
 
-import com.cognizant.icecream.models.*;
-import com.cognizant.icecream.result.Result;
-import com.cognizant.icecream.result.ServiceResultProcessor;
+import com.cognizant.icecream.api.models.*;
+import com.cognizant.icecream.api.result.Result;
+import com.cognizant.icecream.api.result.ServiceResultProcessor;
 import com.cognizant.icecream.services.TruckService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
