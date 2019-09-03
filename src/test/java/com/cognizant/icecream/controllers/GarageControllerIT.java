@@ -1,10 +1,9 @@
 package com.cognizant.icecream.controllers;
 
 
-import com.cognizant.icecream.api.result.Result;
-import com.cognizant.icecream.components.clients.GarageCRUD;
 import com.cognizant.icecream.api.models.Garage;
 import com.cognizant.icecream.api.models.TimeSlot;
+import com.cognizant.icecream.api.result.Result;
 import com.cognizant.icecream.util.ResultImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
@@ -49,9 +48,6 @@ public class GarageControllerIT {
     @Autowired
     private MockMvc mvc;
 
-    @Autowired
-    private GarageCRUD garageCRUD;
-
     @BeforeClass
     public static void init() {
 
@@ -79,9 +75,12 @@ public class GarageControllerIT {
     }
 
     @Before
-    public void setup() {
-        garageCRUD.add(persisted);
-        garageCRUD.remove(UNPERSISTED_CODE);
+    public void setup() throws Exception {
+
+        MockHttpServletRequestBuilder builder = createPostBuilder(BASE_URI, persisted);
+        performMvcRequest(builder);
+
+        performMvcRequest(delete(BASE_URI + UNPERSISTED_CODE));
     }
 
 

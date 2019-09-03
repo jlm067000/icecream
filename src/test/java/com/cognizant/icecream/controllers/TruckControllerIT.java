@@ -94,20 +94,28 @@ public class TruckControllerIT {
     }
 
     @Before
-    public void setup() {
+    public void setup() throws Exception {
 
-        truckCRUD.add(alcoholic);
-        truckCRUD.update(alcoholic);
-        truckCRUD.add(nonalcoholic);
-        truckCRUD.update(nonalcoholic);
-        truckCRUD.remove(UNPERSISTED_VIN);
+        MockHttpServletRequestBuilder builder = createPostBuilder(BASE_URI, alcoholic);
+        mvc.perform(builder);
 
-        garageCRUD.add(alternateGarage);
-        garageCRUD.add(defaultGarage);
-        garageCRUD.add(alcoholicTG);
-        garageCRUD.add(nonalcoholicTG);
+        builder = createPutBuilder(BASE_URI + ALCOHOLIC_VIN, alcoholic);
+        mvc.perform(builder);
 
-        garageCRUD.remove(UNPERSISTED_VIN);
+        builder = createPostBuilder(BASE_URI, nonalcoholic);
+        mvc.perform(builder);
+
+        builder = createPutBuilder(BASE_URI + NONALCOHOLIC_VIN, nonalcoholic);
+        mvc.perform(builder);
+
+        mvc.perform(delete(BASE_URI + UNPERSISTED_VIN));
+
+        builder = createPostBuilder("/icecream/garage/", alternateGarage);
+        mvc.perform(builder);
+        builder = createPostBuilder("/icecream/garage/", defaultGarage);
+        mvc.perform(builder);
+
+        mvc.perform(delete("/icecream/garage/" + UNPERSISTED_VIN));
     }
 
     private static void initializePurchaseOrders() {
@@ -242,29 +250,6 @@ public class TruckControllerIT {
     }
 
     @Test
-    public void testGetTrucksByGarage() throws Exception {
-
-        MockHttpServletResponse response = performGetWithAuthorization(mvc, BASE_URI + "garage/" + GARAGE_CODE);
-
-        assertEquals(200, response.getStatus());
-
-        List<Truck> trucks = getObjectList(response, Truck[].class);
-
-        assertNotNull(trucks);
-        assertEquals(2, trucks.size());
-        assertTrue(trucks.contains(alcoholic));
-        assertTrue(trucks.contains(nonalcoholic));
-
-        response = performGetWithAuthorization(mvc, BASE_URI + "garage/" + INVALID_CODE);
-
-        assertEquals(200, response.getStatus());
-
-        Truck[] truckArr = MAPPER.readValue(response.getContentAsString(), Truck[].class);
-
-        assertEquals(0, truckArr.length);
-    }
-
-    @Test
     public void testGetAllByAlcoholic() throws Exception {
 
         MockHttpServletResponse response = mvc.perform(get(BASE_URI + "/alcoholic")).andReturn().getResponse();
@@ -284,48 +269,6 @@ public class TruckControllerIT {
 
         assertEquals(1, trucks.size());
         assertTrue(trucks.contains(nonalcoholic));
-    }
-
-    @Test
-    public void testGetAllByCodeAndAlcoholic() throws Exception {
-
-        String uri = BASE_URI + "/garage/" + GARAGE_CODE + "/alcoholic";
-        MockHttpServletResponse response = performGetWithAuthorization(mvc,uri);
-
-        assertEquals(200, response.getStatus());
-
-        List<Truck> trucks = getObjectList(response, Truck[].class);
-
-        assertEquals(1, trucks.size());
-        assertTrue(trucks.contains(alcoholic));
-
-        uri = BASE_URI + "/garage/" + INVALID_CODE + "/alcoholic";
-        response = performGetWithAuthorization(mvc, uri);
-
-        assertEquals(200, response.getStatus());
-
-        Truck[] truckArr = MAPPER.readValue(response.getContentAsString(), Truck[].class);
-
-        assertEquals(0, truckArr.length);
-
-        uri = BASE_URI + "/garage/" + GARAGE_CODE + "/nonalcoholic";
-        response = performGetWithAuthorization(mvc, uri);
-
-        assertEquals(200, response.getStatus());
-
-        trucks = getObjectList(response, Truck[].class);
-
-        assertEquals(1, trucks.size());
-        assertTrue(trucks.contains(nonalcoholic));
-
-        uri = BASE_URI + "/garage/" + INVALID_CODE + "/nonalcoholic";
-        response = performGetWithAuthorization(mvc, uri);
-
-        assertEquals(200, response.getStatus());
-
-        truckArr = MAPPER.readValue(response.getContentAsString(), Truck[].class);
-
-        assertEquals(0, truckArr.length);
     }
 
     @Test
@@ -375,7 +318,7 @@ public class TruckControllerIT {
         builder.header("Authorization", "");
         response = mvc.perform(builder).andReturn().getResponse();
 
-        assertEquals(400, response.getStatus());
+        assertEquals(200, response.getStatus());
 
         truckGarage.setGarage(alternateGarage);
 
