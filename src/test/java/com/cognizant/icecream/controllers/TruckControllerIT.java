@@ -42,6 +42,7 @@ public class TruckControllerIT {
     private static final String ALTERNATE_CODE = "13";
     private static final String GARAGE_CODE = "12";
     private static final String INVALID_CODE = "11";
+    private static final String AUTHORIZATION = "This is a highly secure authorization header.";
 
     private static Truck unpersisted;
     private static Truck invalid;
@@ -332,7 +333,7 @@ public class TruckControllerIT {
     public void testPurchaseTrucks() throws Exception {
 
         MockHttpServletRequestBuilder builder = createPostBuilder(BASE_URI + "/purchase/", validOrder);
-        builder.header("Authorization", "");
+        builder.header("Authorization", AUTHORIZATION);
 
         MockHttpServletResponse response = mvc.perform(builder).andReturn().getResponse();
 
@@ -343,14 +344,14 @@ public class TruckControllerIT {
         assertNotNull(responseBody);
 
         builder = createPostBuilder(BASE_URI + "/purchase/", invalidGarageOrder);
-        builder.header("Authorization", "");
+        builder.header("Authorization", AUTHORIZATION);
 
         response = mvc.perform(builder).andReturn().getResponse();
 
         assertEquals(400, response.getStatus());
 
         builder = createPostBuilder(BASE_URI + "/purchase/", existingTrucksOrder);
-        builder.header("Authorization", "");
+        builder.header("Authorization", AUTHORIZATION);
 
         response = mvc.perform(builder).andReturn().getResponse();
 
@@ -363,7 +364,7 @@ public class TruckControllerIT {
         TruckGarage truckGarage = new TruckGarage();
 
         MockHttpServletRequestBuilder builder = createPostBuilder(BASE_URI + "/deploy/", truckGarage);
-        builder.header("Authorization", "");
+        builder.header("Authorization", AUTHORIZATION);
         MockHttpServletResponse response = mvc.perform(builder).andReturn().getResponse();
 
         assertEquals(400, response.getStatus());
@@ -372,7 +373,7 @@ public class TruckControllerIT {
         truckGarage.setTruck(alcoholic);
 
         builder = createPostBuilder(BASE_URI + "/deploy/", truckGarage);
-        builder.header("Authorization", "");
+        builder.header("Authorization", AUTHORIZATION);
         response = mvc.perform(builder).andReturn().getResponse();
 
         assertEquals(400, response.getStatus());
@@ -380,7 +381,7 @@ public class TruckControllerIT {
         truckGarage.setGarage(alternateGarage);
 
         builder = createPostBuilder(BASE_URI + "/deploy/", truckGarage);
-        builder.header("Authorization", "");
+        builder.header("Authorization", AUTHORIZATION);
         response = mvc.perform(builder).andReturn().getResponse();
 
         assertEquals(200, response.getStatus());
@@ -388,7 +389,7 @@ public class TruckControllerIT {
         truckGarage.setGarage(invalidGarage);
 
         builder = createPostBuilder(BASE_URI + "/deploy/", truckGarage);
-        builder.header("Authorization", "");
+        builder.header("Authorization", AUTHORIZATION);
         response = mvc.perform(builder).andReturn().getResponse();
 
         assertEquals(400, response.getStatus());
@@ -396,7 +397,7 @@ public class TruckControllerIT {
         truckGarage.setTruck(unpersisted);
 
         builder = createPostBuilder(BASE_URI + "/deploy/", truckGarage);
-        builder.header("Authorization", "");
+        builder.header("Authorization", AUTHORIZATION);
         response = mvc.perform(builder).andReturn().getResponse();
 
         assertEquals(400, response.getStatus());
@@ -404,7 +405,7 @@ public class TruckControllerIT {
         truckGarage.setGarage(alternateGarage);
 
         builder = createPostBuilder(BASE_URI + "/deploy/", truckGarage);
-        builder.header("Authorization", "");
+        builder.header("Authorization", AUTHORIZATION);
         response = mvc.perform(builder).andReturn().getResponse();
 
         assertEquals(400, response.getStatus());

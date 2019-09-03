@@ -36,6 +36,7 @@ public class GarageControllerIT {
     private static final String BASE_URI = "/icecream/garage/";
     private static final String PERSISTED_CODE = "12";
     private static final String UNPERSISTED_CODE = "11";
+    private static final String AUTHORIZATION = "This is a highly secure authorization header.";
 
     private static ObjectMapper mapper;
 
@@ -172,14 +173,14 @@ public class GarageControllerIT {
 
         SerializableTimeSlot serializable = new SerializableTimeSlot(futureTime);
         MockHttpServletRequestBuilder builder = createPostBuilder(BASE_URI + PERSISTED_CODE + "/resupply", serializable);
-        builder.header("Authorization", "");
+        builder.header("Authorization", AUTHORIZATION);
 
         MockHttpServletResponse response = performMvcRequest(builder);
 
         assertEquals(200, response.getStatus());
 
         builder = createPostBuilder(BASE_URI + UNPERSISTED_CODE + "/resupply", serializable);
-        builder.header("Authorization", "");
+        builder.header("Authorization", AUTHORIZATION);
         response = performMvcRequest(builder);
 
         assertEquals(400, response.getStatus());
@@ -191,7 +192,7 @@ public class GarageControllerIT {
         serializable = new SerializableTimeSlot(pastTime);
 
         builder = createPostBuilder(BASE_URI + UNPERSISTED_CODE + "/resupply", serializable);
-        builder.header("Authorization", "");
+        builder.header("Authorization", AUTHORIZATION);
         response = performMvcRequest(builder);
 
         assertEquals(400, response.getStatus());

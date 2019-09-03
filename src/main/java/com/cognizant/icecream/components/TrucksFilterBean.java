@@ -8,12 +8,17 @@ import com.cognizant.icecream.models.Garage;
 import com.cognizant.icecream.models.Truck;
 import com.cognizant.icecream.models.TruckGarage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.WebApplicationContext;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashSet;
 import java.util.Set;
 
 @Component
+@Scope(value = WebApplicationContext.SCOPE_REQUEST, proxyMode = ScopedProxyMode.TARGET_CLASS)
 class TrucksFilterBean implements TrucksFilter {
 
     private static final Set<Truck> EMPTY_SET = new HashSet<>();
@@ -22,12 +27,16 @@ class TrucksFilterBean implements TrucksFilter {
     private GarageCRUD garageCRUD;
     private GarageCache garageCache;
 
+    private String authorization;
+
     @Autowired
-    TrucksFilterBean(TruckCRUD truckCRUD, GarageCRUD garageCRUD, GarageCache garageCache) {
+    TrucksFilterBean(TruckCRUD truckCRUD, GarageCRUD garageCRUD, GarageCache garageCache, HttpServletRequest request) {
 
         this.truckCRUD = truckCRUD;
         this.garageCRUD = garageCRUD;
         this.garageCache = garageCache;
+
+        this.authorization = request.getHeader("Authorization");
     }
 
     @Override
@@ -37,7 +46,7 @@ class TrucksFilterBean implements TrucksFilter {
     }
 
     @Override
-    public Set<Truck> getTrucks(String authorization, String garageCode) {
+    public Set<Truck> getTrucks(String garageCode) {
 
         Garage garage = garageCache.getGarage(authorization, garageCode);
 
@@ -61,9 +70,9 @@ class TrucksFilterBean implements TrucksFilter {
     }
 
     @Override
-    public Set<Truck> getTrucks(String authorization, String garageCode, boolean alcoholic) {
+    public Set<Truck> getTrucks(String garageCode, boolean alcoholic) {
 
-        Set<Truck> trucks = getTrucks(authorization, garageCode);
+        Set<Truck> trucks = getTrucks(garageCode);
 
         trucks.removeIf(t -> t.isAlcoholic() ^ alcoholic);
 

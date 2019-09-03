@@ -11,12 +11,17 @@ import com.cognizant.icecream.pools.api.ServiceResultPool;
 import com.cognizant.icecream.result.MutableServiceResult;
 import com.cognizant.icecream.result.ServiceResultProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.WebApplicationContext;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Optional;
 import java.util.Set;
 
 @Component
+@Scope(value = WebApplicationContext.SCOPE_REQUEST, proxyMode = ScopedProxyMode.TARGET_CLASS)
 class TruckPurchaserBean implements TruckPurchaser {
 
     private static final String COULD_NOT_PURCHASE = "Failed to process Purchase Order. " +
@@ -30,25 +35,26 @@ class TruckPurchaserBean implements TruckPurchaser {
     private GarageCache garageCache;
     private TruckCRUDOperator crudOperator;
 
+    private String authorization;
+
     @Autowired
     TruckPurchaserBean(
             TruckPurchasingClient purchasingClient,
             ServiceResultPool<Invoice> invoiceResultPool,
             GarageCache garageCache,
-            TruckCRUDOperator crudOperator
+            TruckCRUDOperator crudOperator,
+            HttpServletRequest request
     ) {
         this.purchasingClient = purchasingClient;
         this.invoiceResultPool = invoiceResultPool;
         this.garageCache = garageCache;
         this.crudOperator = crudOperator;
+
+        this.authorization = request.getHeader("Authorization");
     }
 
     @Override
-    public <T> T purchaseTrucks(
-            String authorization,
-            TruckPurchaseOrder order,
-            ServiceResultProcessor<Invoice, T> resultProcessor
-    ) {
+    public <T> T purchaseTrucks(TruckPurchaseOrder order, ServiceResultProcessor<Invoice, T> resultProcessor) {
 
         Truck preexisting = findPreexisting(authorization, order.getTrucks());
 

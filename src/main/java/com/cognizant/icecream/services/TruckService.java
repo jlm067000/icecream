@@ -53,18 +53,14 @@ public class TruckService {
         return crudOperator.removeTruck(vin, resultProcessor);
     }
 
-    public <T> T purchaseTrucks(
-            String authorization,
-            TruckPurchaseOrder order,
-            ServiceResultProcessor<Invoice, T> resultProcessor
-    ) {
+    public <T> T purchaseTrucks(TruckPurchaseOrder order, ServiceResultProcessor<Invoice, T> resultProcessor) {
 
-        return purchaser.purchaseTrucks(authorization, order, resultProcessor);
+        return purchaser.purchaseTrucks(order, resultProcessor);
     }
 
-    public <T> T deploy(String authorization, TruckGarage truckGarage, ResultProcessor<T> resultProcessor) {
+    public <T> T deploy(TruckGarage truckGarage, ResultProcessor<T> resultProcessor) {
 
-        return deployer.deploy(authorization, truckGarage, resultProcessor);
+        return deployer.deploy(truckGarage, resultProcessor);
     }
 
     public <T> T patrol(boolean alcoholic, Neighborhood neighborhood, ResultProcessor<T> resultProcessor) {
@@ -77,9 +73,9 @@ public class TruckService {
         return filter.getTrucks();
     }
 
-    public Set<Truck> getTrucks(String authorization, String garageCode) {
+    public Set<Truck> getTrucks(String garageCode) {
 
-        return filter.getTrucks(authorization, garageCode);
+        return filter.getTrucks(garageCode);
     }
 
     public Set<Truck> getTrucks(boolean alcoholic) {
@@ -87,8 +83,8 @@ public class TruckService {
         return filter.getTrucks(alcoholic);
     }
 
-    public Set<Truck> getTrucks(String authorization, String garageCode, boolean alcoholic) {
+    public Set<Truck> getTrucks(String garageCode, boolean alcoholic) {
 
-        return filter.getTrucks(authorization, garageCode, alcoholic);
+        return filter.getTrucks(garageCode, alcoholic);
     }
 }

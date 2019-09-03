@@ -6,6 +6,6 @@ import com.cognizant.icecream.result.ResultProcessor;
 
 public interface TruckDeployer {
 
-    <T> T deploy(String authorization, TruckGarage truckGarage, ResultProcessor<T> resultProcessor);
+    <T> T deploy(TruckGarage truckGarage, ResultProcessor<T> resultProcessor);
     <T> T patrol(boolean alcoholic, Neighborhood neighborhood, ResultProcessor<T> resultProcessor);
 }

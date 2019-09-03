@@ -11,9 +11,16 @@ import com.cognizant.icecream.result.Result;
 import com.cognizant.icecream.result.ResultFactory;
 import com.cognizant.icecream.result.ResultProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.WebApplicationContext;
+
+import javax.servlet.http.HttpServletRequest;
 
 @Component
+@Scope(value = WebApplicationContext.SCOPE_REQUEST, proxyMode = ScopedProxyMode.TARGET_CLASS)
 class GarageResupplierBean implements GarageResupplier {
 
     private static final Result FUTURE;
@@ -26,6 +33,8 @@ class GarageResupplierBean implements GarageResupplier {
     private TimeClient timeClient;
     private ResultPool resultPool;
 
+    private String authorization;
+
     static {
         FUTURE = ResultFactory.createResult(false, "Resupply must be SCHEDULED for a FUTURE time slot.");
         SCHEDULED = ResultFactory.createResult(true, "SCHEDULED");
@@ -33,16 +42,22 @@ class GarageResupplierBean implements GarageResupplier {
     }
 
     @Autowired
-    GarageResupplierBean(GarageCRUD garageCRUD, SupplyClient supplyClient, TimeClient timeClient, ResultPool resultPool)
-    {
+    GarageResupplierBean(
+            GarageCRUD garageCRUD,
+            SupplyClient supplyClient,
+            TimeClient timeClient,
+            ResultPool resultPool,
+            HttpServletRequest request
+    ) {
         this.garageCRUD = garageCRUD;
         this.supplyClient = supplyClient;
         this.timeClient = timeClient;
         this.resultPool = resultPool;
+        this.authorization = request.getHeader("Authorization");
     }
 
     @Override
-    public <T> T resupply(String authorization, String garageCode, TimeSlot timeSlot, ResultProcessor<T> resultProcessor) {
+    public <T> T resupply(String garageCode, TimeSlot timeSlot, ResultProcessor<T> resultProcessor) {
 
         if(!timeClient.isValid(authorization, timeSlot)) {
             return resultProcessor.apply(FUTURE);

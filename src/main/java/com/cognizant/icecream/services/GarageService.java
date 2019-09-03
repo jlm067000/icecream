@@ -21,9 +21,9 @@ public class GarageService {
         this.resupplier = resupplier;
     }
 
-    public <T> T resupply(String authorization, String garageCode, TimeSlot timeSlot, ResultProcessor<T> resultProcessor) {
+    public <T> T resupply(String garageCode, TimeSlot timeSlot, ResultProcessor<T> resultProcessor) {
 
-        return resupplier.resupply(authorization, garageCode, timeSlot, resultProcessor);
+        return resupplier.resupply(garageCode, timeSlot, resultProcessor);
     }
 
     public <T> T getGarage(String garageCode, ServiceResultProcessor<Garage, T> resultProcessor) {

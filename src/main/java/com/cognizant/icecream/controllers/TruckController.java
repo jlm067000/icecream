@@ -91,29 +91,23 @@ public class TruckController {
     }
 
     @GetMapping("garage/{code}")
-    public ResponseEntity<Set<Truck>> getTrucks(
-            @RequestHeader("Authorization") String authorization,
-            @PathVariable("code") String garageCode
-    ) {
-        Set<Truck> trucks = service.getTrucks(authorization, garageCode);
+    public ResponseEntity<Set<Truck>> getTrucks(@PathVariable("code") String garageCode) {
+
+        Set<Truck> trucks = service.getTrucks(garageCode);
         return new ResponseEntity<>(trucks, HttpStatus.OK);
     }
 
     @GetMapping("garage/{code}/alcoholic")
-    public ResponseEntity<Set<Truck>> getAlcoholicTrucks(
-                                            @RequestHeader("Authorization") String authorization,
-                                            @PathVariable("code") String garageCode
-    ) {
-        Set<Truck> trucks = service.getTrucks(authorization, garageCode, true);
+    public ResponseEntity<Set<Truck>> getAlcoholicTrucks(@PathVariable("code") String garageCode) {
+
+        Set<Truck> trucks = service.getTrucks(garageCode, true);
         return new ResponseEntity<>(trucks, HttpStatus.OK);
     }
 
     @GetMapping("garage/{code}/nonalcoholic")
-    public ResponseEntity<Set<Truck>> getNonAlcoholicTrucks(
-                                        @RequestHeader("Authorization") String authorization,
-                                        @PathVariable("code") String garageCode
-    ) {
-        Set<Truck> trucks = service.getTrucks(authorization, garageCode, false);
+    public ResponseEntity<Set<Truck>> getNonAlcoholicTrucks(@PathVariable("code") String garageCode) {
+
+        Set<Truck> trucks = service.getTrucks(garageCode, false);
         return new ResponseEntity<>(trucks, HttpStatus.OK);
     }
 
@@ -132,18 +126,15 @@ public class TruckController {
     }
 
     @PostMapping("purchase")
-    public ResponseEntity<?> purchaseTrucks(@RequestHeader("Authorization") String auth, @Valid @RequestBody TruckPurchaseOrder order) {
+    public ResponseEntity<?> purchaseTrucks(@Valid @RequestBody TruckPurchaseOrder order) {
 
-        return service.purchaseTrucks(auth, order, invoiceProcessor);
+        return service.purchaseTrucks(order, invoiceProcessor);
     }
 
     @PostMapping("deploy")
-    public ResponseEntity<Result> deploy(
-                                    @RequestHeader("Authorization") String authorization,
-                                    @Valid @RequestBody TruckGarage truckGarage
-    ) {
+    public ResponseEntity<Result> deploy(@Valid @RequestBody TruckGarage truckGarage) {
 
-        return service.deploy(authorization, truckGarage, ResultProcessorFactory.DEFAULT_PROCESSOR);
+        return service.deploy(truckGarage, ResultProcessorFactory.DEFAULT_PROCESSOR);
     }
 
     @PostMapping("patrol")

@@ -69,13 +69,9 @@ public class GarageController {
     }
 
     @PostMapping("{code}/resupply")
-    public ResponseEntity<Result> scheduleResupply(
-            @RequestHeader("Authorization") String authorization,
-            @PathVariable("code") String code,
-            @Valid @RequestBody TimeSlot timeSlot
-    ) {
-
-        return service.resupply(authorization, code, timeSlot, ResultProcessorFactory.DEFAULT_PROCESSOR);
+    public ResponseEntity<Result> scheduleResupply(@PathVariable("code") String code, @Valid @RequestBody TimeSlot timeSlot)
+    {
+        return service.resupply(code, timeSlot, ResultProcessorFactory.DEFAULT_PROCESSOR);
     }
 
     private static ResponseEntity<String> checkPathVariableMismatch(String pathVariable, Garage garage, String errorMsg)

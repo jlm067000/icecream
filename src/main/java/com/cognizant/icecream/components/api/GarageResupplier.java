@@ -5,5 +5,5 @@ import com.cognizant.icecream.result.ResultProcessor;
 
 public interface GarageResupplier {
 
-    <T> T resupply(String authorization, String garageCode, TimeSlot timeSlot, ResultProcessor<T> resultProcessor);
+    <T> T resupply(String garageCode, TimeSlot timeSlot, ResultProcessor<T> resultProcessor);
 }

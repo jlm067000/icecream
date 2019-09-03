@@ -6,5 +6,5 @@ import com.cognizant.icecream.result.ServiceResultProcessor;
 
 public interface TruckPurchaser {
 
-    <T> T purchaseTrucks(String authorization, TruckPurchaseOrder order, ServiceResultProcessor<Invoice, T> resultProcessor);
+    <T> T purchaseTrucks(TruckPurchaseOrder order, ServiceResultProcessor<Invoice, T> resultProcessor);
 }

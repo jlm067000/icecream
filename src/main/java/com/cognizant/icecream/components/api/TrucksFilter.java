@@ -7,7 +7,7 @@ import java.util.Set;
 public interface TrucksFilter {
 
     Set<Truck> getTrucks();
-    Set<Truck> getTrucks(String authorization, String garageCode);
+    Set<Truck> getTrucks(String garageCode);
     Set<Truck> getTrucks(boolean alcoholic);
-    Set<Truck> getTrucks(String authorization, String garageCode, boolean alcoholic);
+    Set<Truck> getTrucks(String garageCode, boolean alcoholic);
 }

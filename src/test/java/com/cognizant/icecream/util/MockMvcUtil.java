@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 public class MockMvcUtil {
 
     private static final ObjectMapper MAPPER;
+    private static final String AUTHORIZATION = "This is a highly secure authorization header.";
 
     static {
         MAPPER = new ObjectMapper();
@@ -19,7 +20,7 @@ public class MockMvcUtil {
 
     public static MockHttpServletResponse performGetWithAuthorization(MockMvc mvc, String uri) throws Exception {
 
-        MockHttpServletRequestBuilder builder = get(uri).header("Authorization", "");
+        MockHttpServletRequestBuilder builder = get(uri).header("Authorization", AUTHORIZATION);
 
         return mvc.perform(builder).andReturn().getResponse();
     }

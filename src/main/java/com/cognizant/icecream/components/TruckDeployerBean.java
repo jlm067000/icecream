@@ -12,11 +12,16 @@ import com.cognizant.icecream.result.MutableResult;
 import com.cognizant.icecream.result.Result;
 import com.cognizant.icecream.result.ResultProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.WebApplicationContext;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Optional;
 
 @Component
+@Scope(value = WebApplicationContext.SCOPE_REQUEST, proxyMode = ScopedProxyMode.TARGET_CLASS)
 class TruckDeployerBean implements TruckDeployer {
 
     private static final String NONEXISTENT_TRUCK = "Could not find truck with VIN %s.";
@@ -30,23 +35,28 @@ class TruckDeployerBean implements TruckDeployer {
     private TruckDeploymentClient client;
     private ResultPool pool;
 
+    private String authorization;
+
     @Autowired
     TruckDeployerBean(
             GarageCRUD garageCRUD,
             GarageCache garageCache,
             TruckCRUDOperator crudOperator,
             TruckDeploymentClient client,
-            ResultPool pool
+            ResultPool pool,
+            HttpServletRequest request
     ) {
         this.garageCRUD = garageCRUD;
         this.garageCache = garageCache;
         this.crudOperator = crudOperator;
         this.client = client;
         this.pool = pool;
+
+        this.authorization = request.getHeader("Authorization");
     }
 
     @Override
-    public <T> T deploy(String authorization, TruckGarage truckGarage, ResultProcessor<T> resultProcessor) {
+    public <T> T deploy(TruckGarage truckGarage, ResultProcessor<T> resultProcessor) {
 
         if(!crudOperator.exists(authorization, truckGarage.getTruck())) {
 
