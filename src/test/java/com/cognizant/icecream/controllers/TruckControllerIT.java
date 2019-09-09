@@ -1,7 +1,5 @@
 package com.cognizant.icecream.controllers;
 
-import com.cognizant.icecream.components.clients.GarageCRUD;
-import com.cognizant.icecream.components.clients.TruckCRUD;
 import com.cognizant.icecream.api.models.*;
 import com.cognizant.icecream.util.TruckFactory;
 import com.cognizant.icecream.util.TruckGarageFactory;
@@ -23,7 +21,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.cognizant.icecream.util.MockMvcUtil.*;
+import static com.cognizant.icecream.util.MockMvcUtil.createPostBuilder;
+import static com.cognizant.icecream.util.MockMvcUtil.createPutBuilder;
 import static org.junit.Assert.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -65,12 +64,6 @@ public class TruckControllerIT {
 
     @Autowired
     private MockMvc mvc;
-
-    @Autowired
-    private TruckCRUD truckCRUD;
-
-    @Autowired
-    private GarageCRUD garageCRUD;
 
     @BeforeClass
     public static void init() {
